@@ -1,0 +1,60 @@
+@rendermode InteractiveServer
+
+<section id="how-it-works" class="max-w-7xl mx-auto px-6 py-24">
+    <!-- Section Header -->
+    <div class="mb-10">
+        <span class="px-3.5 py-1.5 rounded-lg bg-brand-lime text-xs font-bold text-neutral-900 uppercase tracking-wider">
+            How It Works
+        </span>
+        <p class="text-neutral-500 text-sm mt-3 max-w-md">
+            Four simple steps to get world-class healthcare without leaving your room.
+        </p>
+    </div>
+
+    <!-- Accordion Items -->
+    <div class="space-y-4">
+        @foreach (var step in steps)
+        {
+            var isSelected = activeStep == step.Id;
+            <div @onclick="() => ToggleStep(step.Id)" 
+                 class="cursor-pointer transition-all duration-300 rounded-2xl p-6 @(isSelected ? "bg-brand-lime text-neutral-950 shadow-md" : "bg-white border border-neutral-200 text-neutral-800 hover:border-neutral-300")">
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-6">
+                        <span class="text-sm font-mono font-bold opacity-60">@step.Number</span>
+                        <h4 class="text-lg font-bold">@step.Title</h4>
+                    </div>
+                    <div class="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-sm @(isSelected ? "border-neutral-900 text-neutral-900" : "border-neutral-300 text-neutral-500")">
+                        @(isSelected ? "−" : "+")
+                    </div>
+                </div>
+
+                @if (isSelected)
+                {
+                    <p class="mt-4 text-sm text-neutral-800/90 leading-relaxed max-w-2xl pl-12">
+                        @step.Description
+                    </p>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private int activeStep = 1;
+
+    private void ToggleStep(int id)
+    {
+        activeStep = (activeStep == id) ? 0 : id;
+    }
+
+    private record StepItem(int Id, string Number, string Title, string Description);
+
+    private List<StepItem> steps = new()
+    {
+        new(1, "01", "Create Your Account", "Sign up in minutes. Enter your baseline medical history and verify your identity securely."),
+        new(2, "02", "Choose a Specialist & Service", "Select from experienced general physicians, pediatricians, therapists, or diagnostics."),
+        new(3, "03", "Schedule Consultation", "Pick an immediate urgent slot or pick a convenient time on your calendar."),
+        new(4, "04", "Get Care & Track Results", "Receive prescriptions digitally and access doctor notes straight in your portal.")
+    };
+}

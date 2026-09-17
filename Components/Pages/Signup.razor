@@ -1,0 +1,144 @@
+@page "/signup"
+@rendermode InteractiveServer
+
+<PageTitle>Create account - MediConsult</PageTitle>
+
+<div class="min-h-screen w-full flex flex-col lg:flex-row bg-white">
+    <!-- Left Column: Form -->
+    <div class="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 min-h-screen">
+        <!-- Top Nav -->
+        <div class="flex items-center justify-between">
+            <a href="/" class="text-sm font-medium text-neutral-500 hover:text-neutral-900 flex items-center space-x-1.5 transition">
+                <span>&larr;</span>
+                <span>Back</span>
+            </a>
+            
+            <div class="flex items-center space-x-2">
+                <span class="w-6 h-6 rounded-full bg-brand-lime flex items-center justify-center text-xs font-bold text-neutral-950">+</span>
+                <span class="font-bold text-base text-neutral-900">MediConsult</span>
+            </div>
+        </div>
+
+        <!-- Center Form Container -->
+        <div class="max-w-sm w-full mx-auto my-auto py-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold tracking-tight text-neutral-900">Create account</h1>
+                <p class="text-neutral-400 text-sm mt-2">Free to join. No credit card needed.</p>
+            </div>
+
+            <form @onsubmit="HandleSignUp" class="space-y-4">
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-xs font-medium text-neutral-700 mb-1.5">Full name</label>
+                    <input type="text" 
+                           required 
+                           placeholder="Jane Reyes" 
+                           class="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 transition" />
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-medium text-neutral-700 mb-1.5">Email</label>
+                    <input type="email" 
+                           required 
+                           placeholder="you@example.com" 
+                           class="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 transition" />
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-xs font-medium text-neutral-700 mb-1.5">Password</label>
+                    <div class="relative">
+                        <input type="@(showPassword ? "text" : "password")" 
+                               required 
+                               placeholder="Min. 8 characters" 
+                               class="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 transition" />
+                        <button type="button" 
+                                @onclick="() => showPassword = !showPassword" 
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Terms Checkbox -->
+                <div class="flex items-start space-x-2.5 pt-1">
+                    <input id="terms" 
+                           type="checkbox" 
+                           required 
+                           class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 accent-neutral-900" />
+                    <label for="terms" class="text-xs text-neutral-500 leading-normal">
+                        I agree to the <a href="#terms" class="underline text-neutral-800 hover:text-black">Terms</a> and <a href="#privacy" class="underline text-neutral-800 hover:text-black">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full py-3.5 rounded-xl bg-brand-dark hover:bg-black text-white text-sm font-semibold transition duration-200 shadow-sm mt-2">
+                    Create Account
+                </button>
+
+                <!-- Switch Link -->
+                <div class="text-center pt-2">
+                    <p class="text-xs text-neutral-500">
+                        Already have an account? 
+                        <a href="/login" class="font-bold text-neutral-900 underline ml-1 hover:text-neutral-700">Log in</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer Notice -->
+        <div class="text-center text-[11px] text-neutral-400">
+            HIPAA compliant &middot; SSL secured
+        </div>
+    </div>
+
+    <!-- Right Column: Visual Showcase -->
+    <div class="hidden lg:block lg:w-1/2 p-4 h-screen sticky top-0">
+        <div class="relative w-full h-full rounded-3xl overflow-hidden bg-neutral-100 shadow-inner">
+            <!-- Background Image -->
+             <img src="images/signup.png" 
+                alt="Doctor telehealth meeting" 
+                 class="w-full h-full object-cover object-center" />
+
+            <!-- Floating Top Right Rating -->
+            <div class="absolute top-8 right-8 bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-xl border border-white/60 text-center">
+                <div class="flex items-center justify-center space-x-1">
+                    <span class="text-lg font-bold text-neutral-900">4.9</span>
+                    <span class="text-neutral-900 text-sm">★</span>
+                </div>
+                <p class="text-[10px] text-neutral-400 uppercase tracking-wider font-medium">Average rating</p>
+            </div>
+
+            <!-- Floating Bottom Social Proof Box -->
+            <div class="absolute bottom-10 left-10 max-w-sm bg-brand-dark/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-white/10 text-white">
+                <!-- Avatar Stack -->
+                <div class="flex items-center space-x-2 mb-3">
+                    <div class="flex -space-x-2 overflow-hidden">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-lime text-neutral-950 font-bold text-[10px] ring-2 ring-brand-dark">JR</span>
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-neutral-200 text-neutral-900 font-bold text-[10px] ring-2 ring-brand-dark">SM</span>
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-lime-300 text-neutral-950 font-bold text-[10px] ring-2 ring-brand-dark">TL</span>
+                    </div>
+                    <span class="text-xs text-neutral-400 font-medium">+50k joined</span>
+                </div>
+                
+                <p class="text-sm text-neutral-200 font-medium leading-snug">
+                    Join thousands of patients getting expert care from home.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showPassword = false;
+
+    private void HandleSignUp()
+    {
+        // Add registration logic or navigation here
+    }
+}

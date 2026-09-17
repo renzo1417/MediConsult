@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+ 
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="medconsult.styles.css" />
+
+    <!-- Google Font: Space Grotesk -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN & Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'sans-serif']
+                    },
+                    colors: {
+                        brand: {
+                            lime: '#B4F435',
+                            dark: '#12161E',
+                            card: '#161B24'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <HeadOutlet />
+</head>
+
+<body class="bg-white text-neutral-900 font-sans antialiased">
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>

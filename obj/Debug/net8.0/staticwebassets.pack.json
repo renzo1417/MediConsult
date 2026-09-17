@@ -1,0 +1,53 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\css\\app.css",
+      "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\Telehealth.png",
+      "PackagePath": "staticwebassets\\images\\Telehealth.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\about-team.png",
+      "PackagePath": "staticwebassets\\images\\about-team.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\consultation.png",
+      "PackagePath": "staticwebassets\\images\\consultation.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\hero-doctor.png",
+      "PackagePath": "staticwebassets\\images\\hero-doctor.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\lab.png",
+      "PackagePath": "staticwebassets\\images\\lab.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\login.png",
+      "PackagePath": "staticwebassets\\images\\login.png"
+    },
+    {
+      "Id": "C:\\Users\\L23Y16W32\\Documents\\Medconsult\\medconsult\\wwwroot\\images\\signup.png",
+      "PackagePath": "staticwebassets\\images\\signup.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.medconsult.props",
+      "PackagePath": "build\\medconsult.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.medconsult.props",
+      "PackagePath": "buildMultiTargeting\\medconsult.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.medconsult.props",
+      "PackagePath": "buildTransitive\\medconsult.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.medconsult.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
