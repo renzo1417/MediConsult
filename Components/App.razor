@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
  
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="medconsult.styles.css" />
 
@@ -28,6 +29,14 @@
                             dark: '#12161E',
                             card: '#161B24'
                         }
+                    },
+                    transitionTimingFunction: {
+                        'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        'spring-bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    },
+                    animation: {
+                        'float': 'floatGentle 4.5s ease-in-out infinite',
+                        'pulse-subtle': 'pulseSubtle 3s ease-in-out infinite'
                     }
                 }
             }
@@ -36,9 +45,13 @@
     <HeadOutlet />
 </head>
 
-<body class="bg-white text-neutral-900 font-sans antialiased">
+<body class="bg-white text-neutral-900 font-sans antialiased selection:bg-brand-lime selection:text-black">
+    <!-- Smooth Scroll Progress Indicator -->
+    <div id="scroll-progress"></div>
+
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+    <script src="js/motion.js"></script>
 </body>
 
 </html>

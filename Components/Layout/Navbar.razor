@@ -1,27 +1,27 @@
 @rendermode InteractiveServer
 
-<header class="w-full bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-neutral-100">
+<header class="w-full bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-neutral-100 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <!-- Brand Logo -->
-        <a href="/" class="flex items-center space-x-2">
-            <span class="w-3.5 h-3.5 rounded-full bg-brand-lime"></span>
+        <a href="/" class="group flex items-center space-x-2 transition-transform duration-300 ease-spring hover:scale-105">
+            <span class="w-3.5 h-3.5 rounded-full bg-brand-lime shadow-[0_0_8px_rgba(180,244,53,0.8)] animate-pulse-subtle"></span>
             <span class="font-bold text-xl tracking-tight text-neutral-900">MediConsult</span>
         </a>
 
         <!-- Desktop Navigation Links -->
         <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-neutral-600">
-            <a href="/#about" class="hover:text-black transition">About Us</a>
-            <a href="/#services" class="hover:text-black transition">Services</a>
-            <a href="/#how-it-works" class="hover:text-black transition">How It Works</a>
-            <a href="/#pricing" class="hover:text-black transition">Pricing</a>
+            <a href="/#about" class="relative hover:text-black transition-colors duration-200 py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-neutral-900 hover:after:w-full after:transition-all after:duration-300 after:ease-spring">About Us</a>
+            <a href="/#services" class="relative hover:text-black transition-colors duration-200 py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-neutral-900 hover:after:w-full after:transition-all after:duration-300 after:ease-spring">Services</a>
+            <a href="/#how-it-works" class="relative hover:text-black transition-colors duration-200 py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-neutral-900 hover:after:w-full after:transition-all after:duration-300 after:ease-spring">How It Works</a>
+            <a href="/#pricing" class="relative hover:text-black transition-colors duration-200 py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-neutral-900 hover:after:w-full after:transition-all after:duration-300 after:ease-spring">Pricing</a>
         </nav>
 
         <!-- Desktop Action Buttons -->
         <div class="hidden md:flex items-center space-x-3">
-            <a href="/login" class="inline-flex items-center justify-center px-6 py-2 rounded-full border border-neutral-300 text-sm font-medium text-neutral-900 hover:border-black transition">
+            <a href="/login" class="motion-btn motion-btn-outline inline-flex items-center justify-center px-6 py-2 rounded-full border border-neutral-300 text-sm font-medium text-neutral-900 hover:border-black transition">
                 Login
             </a>
-            <a href="/signup" class="inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-dark text-sm font-medium text-white hover:bg-neutral-800 transition">
+            <a href="/signup" class="motion-btn motion-btn-dark inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-dark text-sm font-medium text-white hover:bg-neutral-800 transition">
                 Sign Up
             </a>
         </div>
@@ -29,7 +29,7 @@
         <!-- Mobile Hamburger Button -->
         <button type="button" 
                 @onclick="() => isMenuOpen = !isMenuOpen" 
-                class="md:hidden p-2 text-neutral-600 hover:text-black focus:outline-none"
+                class="md:hidden p-2 text-neutral-600 hover:text-black focus:outline-none transition-transform duration-200 active:scale-95"
                 aria-label="Toggle navigation menu">
             @if (isMenuOpen)
             {
@@ -49,7 +49,7 @@
     <!-- Mobile Dropdown Menu -->
     @if (isMenuOpen)
     {
-        <div class="md:hidden bg-white border-b border-neutral-200 px-6 py-5 space-y-4">
+        <div class="md:hidden bg-white border-b border-neutral-200 px-6 py-5 space-y-4 accordion-body-enter">
             <nav class="flex flex-col space-y-3 text-sm font-medium text-neutral-700">
                 <a href="/#about" @onclick="CloseMenu" class="hover:text-black transition">About Us</a>
                 <a href="/#services" @onclick="CloseMenu" class="hover:text-black transition">Services</a>
@@ -57,10 +57,10 @@
                 <a href="/#pricing" @onclick="CloseMenu" class="hover:text-black transition">Pricing</a>
             </nav>
             <div class="pt-4 border-t border-neutral-100 flex flex-col space-y-2">
-                <a href="/login" @onclick="CloseMenu" class="w-full text-center py-2.5 rounded-xl border border-neutral-300 text-sm font-medium text-neutral-900">
+                <a href="/login" @onclick="CloseMenu" class="motion-btn motion-btn-outline w-full text-center py-2.5 rounded-xl border border-neutral-300 text-sm font-medium text-neutral-900">
                     Login
                 </a>
-                <a href="/signup" @onclick="CloseMenu" class="w-full text-center py-2.5 rounded-xl bg-brand-dark text-white text-sm font-medium">
+                <a href="/signup" @onclick="CloseMenu" class="motion-btn motion-btn-dark w-full text-center py-2.5 rounded-xl bg-brand-dark text-white text-sm font-medium">
                     Sign Up
                 </a>
             </div>

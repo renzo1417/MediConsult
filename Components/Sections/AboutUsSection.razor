@@ -1,15 +1,15 @@
-<section id="about" class="max-w-7xl mx-auto px-6 py-20 scroll-mt-20">
+<section id="about" class="max-w-7xl mx-auto px-6 py-20 scroll-mt-24">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <!-- Left: Image with Established Badge -->
-        <div class="lg:col-span-5 relative">
-            <div class="relative overflow-hidden rounded-3xl aspect-[4/5] bg-neutral-100 shadow-md">
+        <div class="lg:col-span-5 relative reveal-on-scroll delay-100">
+            <div class="group relative overflow-hidden rounded-3xl aspect-[4/5] bg-neutral-100 shadow-md">
                     <img src="images/about-team.png" 
                     alt="Medical team" 
-                    class="w-full h-full object-cover" />
+                    class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
 
                 <!-- Bottom Right Established Badge -->
-                <div class="absolute bottom-6 right-6 bg-brand-dark text-white px-5 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center space-x-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-brand-lime"></div>
+                <div class="absolute bottom-6 right-6 bg-brand-dark text-white px-5 py-3 rounded-2xl shadow-xl border border-white/10 flex items-center space-x-3 transition-transform duration-300 ease-spring hover:scale-105 hover:shadow-2xl">
+                    <div class="w-2.5 h-2.5 rounded-full bg-brand-lime shadow-[0_0_8px_rgba(180,244,53,0.8)] animate-pulse-subtle"></div>
                     <div>
                         <p class="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">Established</p>
                         <p class="text-lg font-bold tracking-tight text-white leading-tight">2018</p>
@@ -19,10 +19,10 @@
         </div>
 
         <!-- Right: Text Content & 2x2 Feature Grid -->
-        <div class="lg:col-span-7 space-y-6">
+        <div class="lg:col-span-7 space-y-6 reveal-on-scroll delay-200">
             <!-- Badge -->
             <div>
-                <span class="px-3.5 py-1.5 rounded-lg bg-brand-lime text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                <span class="inline-block px-3.5 py-1.5 rounded-lg bg-brand-lime text-xs font-bold text-neutral-900 uppercase tracking-wider shadow-sm transition-transform duration-300 ease-spring hover:scale-105">
                     About Us
                 </span>
             </div>
@@ -39,29 +39,29 @@
 
             <!-- 2x2 Feature Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div class="p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-                    <h4 class="text-sm font-bold text-neutral-900">Expert Staff</h4>
+                <div class="interactive-card motion-card-spotlight p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 hover:shadow-md transition-all duration-300 ease-spring group cursor-default">
+                    <h4 class="text-sm font-bold text-neutral-900 group-hover:text-black transition-colors">Expert Staff</h4>
                     <p class="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                         Board-certified specialists across 30+ medical fields with extensive hospital experience.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-                    <h4 class="text-sm font-bold text-neutral-900">Verified Quality</h4>
+                <div class="interactive-card motion-card-spotlight p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 hover:shadow-md transition-all duration-300 ease-spring group cursor-default">
+                    <h4 class="text-sm font-bold text-neutral-900 group-hover:text-black transition-colors">Verified Quality</h4>
                     <p class="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                         Strict clinical protocol reviews and continuous post-consultation health tracking.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-                    <h4 class="text-sm font-bold text-neutral-900">Connected Care</h4>
+                <div class="interactive-card motion-card-spotlight p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 hover:shadow-md transition-all duration-300 ease-spring group cursor-default">
+                    <h4 class="text-sm font-bold text-neutral-900 group-hover:text-black transition-colors">Connected Care</h4>
                     <p class="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                         Integrated lab sample collection and doorstep delivery for all prescribed treatments.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-                    <h4 class="text-sm font-bold text-neutral-900">Patient-First</h4>
+                <div class="interactive-card motion-card-spotlight p-5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 hover:shadow-md transition-all duration-300 ease-spring group cursor-default">
+                    <h4 class="text-sm font-bold text-neutral-900 group-hover:text-black transition-colors">Patient-First</h4>
                     <p class="text-xs text-neutral-500 mt-1.5 leading-relaxed">
                         Transparent flat-rate pricing with zero hidden surcharges or surprise billing.
                     </p>
