@@ -14,33 +14,77 @@
             </p>
 
             <div class="flex flex-wrap items-center gap-4">
-                <a href="#book" class="motion-btn motion-btn-dark px-7 py-3.5 rounded-full bg-brand-dark text-white text-sm font-semibold hover:bg-neutral-800 transition group flex items-center space-x-2">
+                <a href="/signup" class="motion-btn motion-btn-dark px-7 py-3.5 rounded-full bg-brand-dark text-white text-sm font-semibold hover:bg-neutral-800 transition group flex items-center space-x-2.5">
                     <span>Book a Consultation</span>
-                    <span class="inline-block group-hover:translate-x-1.5 transition-transform duration-300 ease-spring">→</span>
+                    <svg class="w-4 h-4 text-white inline-block group-hover:translate-x-1.5 transition-transform duration-300 ease-spring" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
                 </a>
-                <a href="#video" class="motion-btn motion-btn-outline px-7 py-3.5 rounded-full border border-neutral-300 text-sm font-semibold text-neutral-800 hover:border-black transition flex items-center space-x-2 group">
-                    <span class="w-2 h-2 rounded-full bg-neutral-900 group-hover:scale-125 transition-transform duration-300"></span>
-                    <span>Watch Video</span>
+                <a href="/how-it-works" class="motion-btn motion-btn-outline px-7 py-3.5 rounded-full border border-neutral-300 text-sm font-semibold text-neutral-800 hover:border-black transition flex items-center space-x-2.5 group">
+                    <span class="w-6 h-6 rounded-full bg-neutral-100 group-hover:bg-brand-lime flex items-center justify-center text-neutral-900 transition-colors duration-300 shadow-sm">
+                        <svg class="w-3.5 h-3.5 ml-0.5 fill-current" viewBox="0 0 24 24">
+                            <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                        </svg>
+                    </span>
+                    <span>See How It Works</span>
                 </a>
             </div>
 
-            <!-- Stats -->
-            <div class="pt-8 grid grid-cols-4 gap-4 border-t border-neutral-200">
-                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default">
-                    <p class="text-2xl font-bold text-neutral-900">50K+</p>
-                    <p class="text-xs text-neutral-500 mt-1">Active Patients</p>
+            <!-- Stats with Modern Icons -->
+            <div class="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-6 border-t border-neutral-200">
+                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default group">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="w-6 h-6 rounded-lg bg-neutral-100 group-hover:bg-brand-lime/30 flex items-center justify-center text-neutral-700 transition-colors">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </span>
+                        <p class="text-2xl font-bold text-neutral-900 tracking-tight">50K+</p>
+                    </div>
+                    <p class="text-xs text-neutral-500 pl-8">Active Patients</p>
                 </div>
-                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default">
-                    <p class="text-2xl font-bold text-neutral-900">200+</p>
-                    <p class="text-xs text-neutral-500 mt-1">Top Doctors</p>
+
+                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default group">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="w-6 h-6 rounded-lg bg-neutral-100 group-hover:bg-brand-lime/30 flex items-center justify-center text-neutral-700 transition-colors">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+                                <circle cx="20" cy="10" r="2"></circle>
+                            </svg>
+                        </span>
+                        <p class="text-2xl font-bold text-neutral-900 tracking-tight">200+</p>
+                    </div>
+                    <p class="text-xs text-neutral-500 pl-8">Top Doctors</p>
                 </div>
-                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default">
-                    <p class="text-2xl font-bold text-neutral-900">4.9★</p>
-                    <p class="text-xs text-neutral-500 mt-1">Customer Rating</p>
+
+                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default group">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="w-6 h-6 rounded-lg bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-amber-500 transition-colors">
+                            <svg class="w-3.5 h-3.5 fill-amber-400 stroke-amber-500" viewBox="0 0 24 24" stroke-width="1.5">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </span>
+                        <p class="text-2xl font-bold text-neutral-900 tracking-tight">4.9</p>
+                    </div>
+                    <p class="text-xs text-neutral-500 pl-8">Customer Rating</p>
                 </div>
-                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default">
-                    <p class="text-2xl font-bold text-neutral-900">24/7</p>
-                    <p class="text-xs text-neutral-500 mt-1">Support Care</p>
+
+                <div class="transition-transform duration-300 ease-spring hover:-translate-y-1 cursor-default group">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center text-emerald-600 transition-colors">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </span>
+                        <p class="text-2xl font-bold text-neutral-900 tracking-tight">24/7</p>
+                    </div>
+                    <p class="text-xs text-neutral-500 pl-8">Support Care</p>
                 </div>
             </div>
         </div>
@@ -55,7 +99,9 @@
                 <!-- Floating Card -->
                 <div class="absolute bottom-6 left-6 bg-brand-dark/95 backdrop-blur-md p-4 rounded-2xl text-white shadow-2xl flex items-center space-x-4 border border-white/10 animate-float transition-all duration-300 hover:scale-105">
                     <div class="w-10 h-10 rounded-full bg-brand-lime flex items-center justify-center text-neutral-950 font-bold shadow-[0_0_12px_rgba(180,244,53,0.5)]">
-                        ✓
+                        <svg class="w-5 h-5 text-neutral-950 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                     <div>
                         <p class="text-xs text-neutral-400">Instant Telehealth</p>

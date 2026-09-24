@@ -1,0 +1,20 @@
+<div class="inline-flex items-center space-x-2.5 @Class">
+    <span class="w-8 h-8 rounded-xl bg-brand-lime flex items-center justify-center text-neutral-950 shadow-[0_0_14px_rgba(180,244,53,0.5)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(180,244,53,0.8)] flex-shrink-0">
+        <svg class="w-4 h-4 text-neutral-950 stroke-[3] transition-transform duration-300 group-hover:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </span>
+    @if (!IconOnly)
+    {
+        <span class="font-bold text-xl tracking-tight @(IsDark ? "text-white" : "text-neutral-900")">
+            MediConsult
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsDark { get; set; } = false;
+    [Parameter] public bool IconOnly { get; set; } = false;
+    [Parameter] public string Class { get; set; } = "";
+}

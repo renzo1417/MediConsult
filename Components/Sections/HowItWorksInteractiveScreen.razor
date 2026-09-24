@@ -1,0 +1,527 @@
+@rendermode InteractiveServer
+
+<div class="w-full">
+    <!-- Header Section (Full Screen, No Card) -->
+    <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
+        <span class="inline-block px-3.5 py-1.5 rounded-lg bg-brand-lime text-xs font-bold text-neutral-900 uppercase tracking-wider shadow-sm mb-4">
+            Step-by-Step Healthcare Journey
+        </span>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-neutral-900 leading-[1.12]">
+            Complete care, directly from your browser.
+        </h1>
+        <p class="text-neutral-500 text-base sm:text-lg mt-4 max-w-2xl mx-auto leading-relaxed">
+            From encrypted clinical intake to live specialist video visits, rapid prescription routing, and telemetry vitals tracking &mdash; explore each phase of our clinical ecosystem.
+        </p>
+    </div>
+
+    <!-- Main Grid: 6 Interactive Steps (Left) + Laptop Mockup (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+        
+        <!-- Left Column: The 6 Steps Timeline (lg:col-span-5) -->
+        <div class="lg:col-span-5 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-neutral-200">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-400">Clinical Workflow</span>
+                <span class="text-xs font-mono font-semibold text-neutral-900">Step @activeStep of @steps.Count</span>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                @foreach (var step in steps)
+                {
+                    var isSelected = activeStep == step.Id;
+                    <div @onclick="() => SetActiveStep(step.Id)" 
+                         class="cursor-pointer transition-all duration-300 rounded-2xl p-4 sm:p-5 select-none @(isSelected ? "bg-neutral-900 text-white shadow-xl scale-[1.01]" : "bg-neutral-50/80 hover:bg-neutral-100 text-neutral-800 border border-neutral-200/70")">
+                        
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start space-x-3.5">
+                                <span class="font-mono text-xs font-bold px-2 py-1 rounded-md @(isSelected ? "bg-brand-lime text-neutral-950" : "bg-neutral-200/80 text-neutral-600")">
+                                    @step.Number
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold leading-snug @(isSelected ? "text-white" : "text-neutral-900")">
+                                        @step.Title
+                                    </h3>
+                                    <span class="inline-block text-[11px] mt-1 @(isSelected ? "text-neutral-400" : "text-neutral-500")">
+                                        ⏱ @step.DurationBadge
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs @(isSelected ? "text-brand-lime rotate-90" : "text-neutral-400") transition-transform duration-300">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </span>
+                        </div>
+
+                        @if (isSelected)
+                        {
+                            <div class="mt-3.5 pt-3 border-t border-neutral-800 accordion-body-enter">
+                                <p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                                    @step.Description
+                                </p>
+                                
+                                <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                    @foreach (var tag in step.Tags)
+                                    {
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
+                                            @tag
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Step Progress Controls -->
+            <div class="pt-4 flex items-center justify-between gap-3">
+                <button type="button" 
+                        @onclick="PreviousStep" 
+                        disabled="@(activeStep == 1)"
+                        class="motion-btn motion-btn-outline px-4 py-2.5 rounded-xl border border-neutral-300 text-xs font-semibold text-neutral-700 hover:border-black disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Previous</span>
+                </button>
+
+                <!-- Step Dots Indicator -->
+                <div class="flex items-center space-x-1.5">
+                    @for (int i = 1; i <= steps.Count; i++)
+                    {
+                        var stepNum = i;
+                        <button type="button" 
+                                @onclick="() => SetActiveStep(stepNum)"
+                                class="transition-all duration-300 rounded-full @(activeStep == stepNum ? "w-6 h-2 bg-brand-lime shadow-sm" : "w-2 h-2 bg-neutral-300 hover:bg-neutral-400")"
+                                aria-label="Go to step @stepNum">
+                        </button>
+                    }
+                </div>
+
+                <button type="button" 
+                        @onclick="NextStep" 
+                        disabled="@(activeStep == steps.Count)"
+                        class="motion-btn motion-btn-dark px-4 py-2.5 rounded-xl bg-brand-dark text-white text-xs font-semibold hover:bg-neutral-800 disabled:opacity-30 disabled:pointer-events-none flex items-center space-x-1.5">
+                    <span>Next</span>
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column: Premium Laptop Screen Mockup (lg:col-span-7) -->
+        <div class="lg:col-span-7 lg:sticky lg:top-28">
+            <!-- Laptop Device Container -->
+            <div class="w-full relative">
+                <!-- Laptop Bezel Top & Sides -->
+                <div class="bg-[#181B22] rounded-t-2xl p-2.5 sm:p-3.5 pb-0 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] border border-neutral-700/60">
+                    <!-- Webcam Dot and Ambient Sensor -->
+                    <div class="flex items-center justify-center space-x-1.5 mb-2.5">
+                        <span class="w-1 h-1 rounded-full bg-neutral-700"></span>
+                        <span class="w-2 h-2 rounded-full bg-black border border-neutral-700 flex items-center justify-center">
+                            <span class="w-0.5 h-0.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        </span>
+                        <span class="w-1 h-1 rounded-full bg-neutral-700"></span>
+                    </div>
+
+                    <!-- Inner Display Screen Canvas -->
+                    <div class="bg-[#0D1016] rounded-t-lg overflow-hidden border border-neutral-800 text-white font-sans">
+                        <!-- Browser Header Bar -->
+                        <div class="bg-[#12151D] border-b border-neutral-800 px-3.5 py-2.5 flex items-center justify-between">
+                            <!-- Window Controls -->
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]/80"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]/80"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]/80"></span>
+                            </div>
+
+                            <!-- URL Bar -->
+                            <div class="flex items-center space-x-2 bg-neutral-900/90 px-3 py-1 rounded-md text-[11px] text-neutral-400 font-mono max-w-xs w-full justify-center border border-neutral-800">
+                                <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <span class="truncate">mediconsult.health/portal/@CurrentUrlPath</span>
+                            </div>
+
+                            <!-- Live Session Badge -->
+                            <div class="flex items-center space-x-1 text-[10px] font-mono text-brand-lime">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse"></span>
+                                <span class="hidden sm:inline">256-BIT TLS</span>
+                            </div>
+                        </div>
+
+                        <!-- Laptop Screen Live Content (Changes dynamically with activeStep) -->
+                        <div class="p-4 sm:p-6 min-h-[380px] sm:min-h-[440px] flex flex-col justify-between bg-gradient-to-b from-[#0F1218] to-[#0A0D12]">
+                            
+                            <!-- STEP 1 SCREEN: Clinical Intake & Health Profile -->
+                            @if (activeStep == 1)
+                            {
+                                <div class="space-y-4 accordion-body-enter">
+                                    <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                        <div class="flex items-center space-x-2.5">
+                                            <span class="w-8 h-8 rounded-lg bg-brand-lime flex items-center justify-center text-neutral-950 font-bold text-xs">
+                                                01
+                                            </span>
+                                            <div>
+                                                <h4 class="text-sm font-bold text-white">Digital Medical Intake</h4>
+                                                <p class="text-[11px] text-neutral-400">Patient: Jane Reyes &bull; ID #MC-7729</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                            <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Verified ID
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 pt-1">
+                                        <div class="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                                            <p class="text-[10px] uppercase tracking-wider text-neutral-400">Reported Symptoms</p>
+                                            <p class="text-xs font-semibold text-neutral-200 mt-1">Acute Sinus Pressure &amp; Mild Fever</p>
+                                            <span class="inline-block text-[10px] text-brand-lime font-mono mt-1">Duration: 3 Days</span>
+                                        </div>
+
+                                        <div class="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                                            <p class="text-[10px] uppercase tracking-wider text-neutral-400">Known Allergies</p>
+                                            <p class="text-xs font-semibold text-neutral-200 mt-1">Penicillin (Mild Rash)</p>
+                                            <span class="inline-block text-[10px] text-neutral-400 font-mono mt-1">Verified from EHR</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80 space-y-2">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="text-neutral-400">Intake Completion</span>
+                                            <span class="font-mono text-brand-lime font-bold">100% Ready</span>
+                                        </div>
+                                        <div class="w-full h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+                                            <div class="h-full bg-brand-lime w-full"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- STEP 2 SCREEN: Specialist Matching & Calendar -->
+                            else if (activeStep == 2)
+                            {
+                                <div class="space-y-4 accordion-body-enter">
+                                    <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-white">Board-Certified Specialists</h4>
+                                            <p class="text-[11px] text-neutral-400">Matched to your symptoms and insurance</p>
+                                        </div>
+                                        <span class="text-[10px] font-mono bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded border border-neutral-700">
+                                            30+ Available
+                                        </span>
+                                    </div>
+
+                                    <!-- Selected Doctor Card -->
+                                    <div class="p-3.5 rounded-xl bg-neutral-900 border border-neutral-700 flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-brand-lime/20 border border-brand-lime/30 flex items-center justify-center text-white font-bold text-sm">
+                                                SB
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center space-x-1.5">
+                                                    <h5 class="text-xs font-bold text-white">Dr. Sarah Bennett, MD</h5>
+                                                    <span class="text-[10px] text-amber-400">★ 4.98</span>
+                                                </div>
+                                                <p class="text-[11px] text-neutral-400">Internal Medicine &bull; Johns Hopkins Fellow</p>
+                                                <p class="text-[10px] text-emerald-400 font-mono mt-0.5">● Next slot in 8 minutes</p>
+                                            </div>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-lg bg-brand-lime text-neutral-950 font-bold text-[10px]">
+                                            Selected
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono text-neutral-400">
+                                        <div class="p-2 rounded-lg bg-neutral-900/60 border border-neutral-800">
+                                            <p class="font-bold text-white text-xs">1,420+</p>
+                                            <p>Consultations</p>
+                                        </div>
+                                        <div class="p-2 rounded-lg bg-neutral-900/60 border border-neutral-800">
+                                            <p class="font-bold text-white text-xs">12 Yrs</p>
+                                            <p>Clinical Exp</p>
+                                        </div>
+                                        <div class="p-2 rounded-lg bg-neutral-900/60 border border-neutral-800">
+                                            <p class="font-bold text-emerald-400 text-xs">Instant</p>
+                                            <p>Response</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- STEP 3 SCREEN: HD Encrypted Video Consult -->
+                            else if (activeStep == 3)
+                            {
+                                <div class="space-y-3.5 accordion-body-enter">
+                                    <!-- Video Container Simulation -->
+                                    <div class="relative w-full h-44 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden flex items-center justify-center group">
+                                        <img src="images/consultation.png" 
+                                             alt="Live consultation video" 
+                                             class="w-full h-full object-cover opacity-75" />
+                                        
+                                        <!-- Overlay Floating Details -->
+                                        <div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono text-white flex items-center space-x-1.5 border border-white/10">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                            <span>REC &bull; 00:14:28</span>
+                                        </div>
+
+                                        <div class="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono text-brand-lime border border-brand-lime/20">
+                                            1080p HD Encrypted
+                                        </div>
+
+                                        <!-- Patient Picture-in-Picture window -->
+                                        <div class="absolute bottom-2.5 right-2.5 w-16 h-12 rounded-lg bg-neutral-800 border border-white/20 overflow-hidden shadow-lg flex items-center justify-center text-[10px] text-neutral-400 font-mono">
+                                            You
+                                        </div>
+
+                                        <!-- Doctor Label -->
+                                        <div class="absolute bottom-2.5 left-2.5 bg-black/80 px-2 py-0.5 rounded text-[11px] font-semibold text-white">
+                                            Dr. Sarah Bennett, MD
+                                        </div>
+                                    </div>
+
+                                    <!-- Video Action Controls Bar -->
+                                    <div class="flex items-center justify-center space-x-3 py-1">
+                                        <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-white text-xs">
+                                            🎤
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-white text-xs">
+                                            📹
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-white text-xs">
+                                            💬
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-red-600/90 flex items-center justify-center text-white text-xs">
+                                            📞
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- STEP 4 SCREEN: Digital Prescription (e-Rx) -->
+                            else if (activeStep == 4)
+                            {
+                                <div class="space-y-4 accordion-body-enter">
+                                    <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-white">Electronic Prescription (e-Rx)</h4>
+                                            <p class="text-[11px] text-neutral-400">Order #RX-98214 &bull; DEA Compliant</p>
+                                        </div>
+                                        <span class="text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">
+                                            Signed &bull; Dr. Bennett
+                                        </span>
+                                    </div>
+
+                                    <div class="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-bold text-brand-lime">Amoxicillin 500mg</span>
+                                            <span class="text-[10px] font-mono text-neutral-400">30 Capsules</span>
+                                        </div>
+                                        <p class="text-[11px] text-neutral-300">Sig: Take 1 capsule orally every 8 hours with meals for 10 days.</p>
+                                    </div>
+
+                                    <div class="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-[11px] space-y-1.5">
+                                        <div class="flex items-center justify-between text-neutral-400">
+                                            <span>Fulfillment Channel</span>
+                                            <span class="font-semibold text-white">Doorstep Courier Dispatch</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-neutral-400">
+                                            <span>Estimated Arrival</span>
+                                            <span class="font-semibold text-emerald-400">Within 45 Minutes</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- STEP 5 SCREEN: At-Home Diagnostics & Sample Kits -->
+                            else if (activeStep == 5)
+                            {
+                                <div class="space-y-4 accordion-body-enter">
+                                    <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-white">At-Home Diagnostic Kit</h4>
+                                            <p class="text-[11px] text-neutral-400">Tracking Code: #LAB-4029-US</p>
+                                        </div>
+                                        <span class="text-[10px] font-mono bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded">
+                                            Courier En Route
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+                                            <p class="text-[10px] text-neutral-400 uppercase">Ordered Panels</p>
+                                            <p class="text-xs font-bold text-white mt-1">Complete Blood Count (CBC)</p>
+                                            <p class="text-[10px] text-neutral-400 mt-0.5">Comprehensive Metabolic (CMP)</p>
+                                        </div>
+                                        <div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+                                            <p class="text-[10px] text-neutral-400 uppercase">Turnaround</p>
+                                            <p class="text-xs font-bold text-brand-lime mt-1">24 Hours</p>
+                                            <p class="text-[10px] text-neutral-400 mt-0.5">Direct to Digital Portal</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs flex items-center justify-between">
+                                        <span class="text-neutral-400">Phlebotomist Window</span>
+                                        <span class="font-mono font-semibold text-white">Today &bull; 2:30 PM &ndash; 3:00 PM</span>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- STEP 6 SCREEN: Continuous Care & Real-Time Vitals -->
+                            else
+                            {
+                                <div class="space-y-4 accordion-body-enter">
+                                    <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-white">Continuous Telemetry &amp; Care</h4>
+                                            <p class="text-[11px] text-neutral-400">Wearables Synced: Apple Health &bull; Withings</p>
+                                        </div>
+                                        <span class="text-[10px] font-mono bg-brand-lime/10 text-brand-lime border border-brand-lime/30 px-2 py-0.5 rounded flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse"></span> Live Stream
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-2.5">
+                                        <div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+                                            <p class="text-[10px] text-neutral-400">Heart Rate</p>
+                                            <p class="text-base font-extrabold text-white mt-0.5">72 <span class="text-[10px] font-normal text-neutral-400">bpm</span></p>
+                                            <span class="text-[9px] text-emerald-400 font-mono">Normal sinus</span>
+                                        </div>
+                                        <div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+                                            <p class="text-[10px] text-neutral-400">Blood Pressure</p>
+                                            <p class="text-base font-extrabold text-white mt-0.5">118/76</p>
+                                            <span class="text-[9px] text-emerald-400 font-mono">Optimal</span>
+                                        </div>
+                                        <div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+                                            <p class="text-[10px] text-neutral-400">Oxygen (SpO2)</p>
+                                            <p class="text-base font-extrabold text-white mt-0.5">99%</p>
+                                            <span class="text-[9px] text-emerald-400 font-mono">Calibrated</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                            <span class="text-neutral-300 font-medium">Care team available 24/7 for questions and refills</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Screen Bottom Status Bar -->
+                            <div class="pt-3 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400 font-mono">
+                                <span>Portal v3.4 &bull; Encrypted Session</span>
+                                <span class="text-brand-lime font-semibold">Active: Step @activeStep</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laptop Aluminium Base Chassis / Hinge -->
+                <div class="relative bg-gradient-to-b from-[#262B36] to-[#12151D] h-3.5 sm:h-4 rounded-b-xl border-t border-neutral-600/70 shadow-2xl flex items-center justify-center">
+                    <!-- Opening Notch -->
+                    <div class="w-20 sm:w-28 h-1 bg-neutral-500/80 rounded-full -mt-0.5"></div>
+                </div>
+
+                <!-- Desktop Shadow Effect -->
+                <div class="w-[85%] mx-auto h-3 bg-neutral-950/20 blur-lg rounded-full mt-1"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int InitialStep { get; set; } = 1;
+
+    private int activeStep = 1;
+
+    protected override void OnInitialized()
+    {
+        activeStep = InitialStep;
+    }
+
+    private void SetActiveStep(int id)
+    {
+        activeStep = id;
+    }
+
+    private void PreviousStep()
+    {
+        if (activeStep > 1) activeStep--;
+    }
+
+    private void NextStep()
+    {
+        if (activeStep < steps.Count) activeStep++;
+    }
+
+    private string CurrentUrlPath => activeStep switch
+    {
+        1 => "intake/medical-history",
+        2 => "specialists/match",
+        3 => "consultation/live-video",
+        4 => "prescriptions/orders",
+        5 => "diagnostics/lab-kits",
+        6 => "telemetry/vitals-stream",
+        _ => "dashboard"
+    };
+
+    private record StepItem(int Id, string Number, string Title, string Description, string DurationBadge, string[] Tags);
+
+    private List<StepItem> steps = new()
+    {
+        new(
+            1, 
+            "01", 
+            "Secure Patient Intake & Health History", 
+            "Complete your encrypted medical profile in two minutes. Input baseline symptoms, known drug allergies, past surgical notes, and verify identity securely with bank-grade encryption.",
+            "~2 mins setup",
+            new[] { "HIPAA Vault", "Identity Check", "Pre-Visit Intake" }
+        ),
+        new(
+            2, 
+            "02", 
+            "Smart Specialty Matching & Scheduling", 
+            "Browse 30+ medical specialties. Filter physicians by clinical focus, language, and hospital credentials, then choose an immediate on-demand triage room or schedule ahead.",
+            "Instant Matching",
+            new[] { "Board-Certified", "Direct Schedule", "Insurance Support" }
+        ),
+        new(
+            3, 
+            "03", 
+            "High-Definition Encrypted Video Consult", 
+            "Join a crystal-clear, zero-latency video consultation room directly in your web browser. Discuss symptoms, review medical history with your doctor, and formulate a care plan.",
+            "Zero Wait Time",
+            new[] { "1080p WebRTC", "Zero Latency", "Private Room" }
+        ),
+        new(
+            4, 
+            "04", 
+            "Instant Digital Prescriptions & Pharmacy Routing", 
+            "All prescriptions are digitally signed and routed in seconds to your preferred neighborhood pharmacy or dispatched for same-day refrigerated courier delivery to your doorstep.",
+            "Same-Day Dispatch",
+            new[] { "e-Prescribing", "Walgreens/CVS Sync", "Doorstep Delivery" }
+        ),
+        new(
+            5, 
+            "05", 
+            "At-Home Diagnostics & Sample Collection", 
+            "When laboratory diagnostics are needed, our certified mobile phlebotomists collect samples in your home, or we dispatch test kits with rapid 24-hour certified digital results.",
+            "24h Turnaround",
+            new[] { "At-Home Phlebotomy", "Rapid PCR", "Certified Lab" }
+        ),
+        new(
+            6, 
+            "06", 
+            "Continuous Care & Real-Time Vitals Sync", 
+            "Sync wearable metrics, monitor blood pressure and recovery indicators, review physician clinical encounter summaries, and access 24/7 follow-up messaging with your care team.",
+            "Continuous 24/7",
+            new[] { "Wearables Sync", "Doctor Follow-Up", "24/7 Care Chat" }
+        )
+    };
+}

@@ -2,30 +2,39 @@
     <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8">
         <!-- Brand Info -->
         <div class="col-span-2 space-y-4">
-            <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-brand-lime shadow-[0_0_8px_rgba(180,244,53,0.8)] animate-pulse-subtle"></span>
-                <span class="font-bold text-lg text-white">MediConnect</span>
-            </div>
-            <p class="text-xs text-neutral-500 max-w-sm leading-relaxed">
+            <a href="/" class="group inline-flex items-center transition-transform duration-300 ease-spring hover:scale-105">
+                <AppLogo IsDark="true" />
+            </a>
+            <p class="text-xs text-neutral-400 max-w-sm leading-relaxed">
                 Reimagining modern healthcare delivery through continuous care, expert digital consultations, and rapid response networks.
             </p>
+            <div class="flex items-center space-x-3 text-xs text-neutral-500 pt-2">
+                <span class="inline-flex items-center space-x-1">
+                    <svg class="w-3.5 h-3.5 text-brand-lime" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>HIPAA Compliant</span>
+                </span>
+                <span>•</span>
+                <span>256-Bit SSL Encrypted</span>
+            </div>
         </div>
 
         <!-- Links Col 1 -->
         <div>
             <h5 class="text-white font-semibold text-xs uppercase tracking-wider mb-4">Services</h5>
-            <ul class="space-y-2 text-xs">
+            <ul class="space-y-2.5 text-xs">
                 <li><a href="/#services" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Online Doctors</a></li>
                 <li><a href="/#services" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Prescriptions</a></li>
                 <li><a href="/#services" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Diagnostics</a></li>
+                <li><a href="/how-it-works" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200 font-medium text-neutral-300">How It Works</a></li>
             </ul>
         </div>
 
         <!-- Links Col 2 -->
         <div>
             <h5 class="text-white font-semibold text-xs uppercase tracking-wider mb-4">Company</h5>
-            <ul class="space-y-2 text-xs">
-                <li><a href="/#about" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">About</a></li>
+            <ul class="space-y-2.5 text-xs">
+                <li><a href="/#about" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">About Us</a></li>
+                <li><a href="/how-it-works" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Walkthrough</a></li>
                 <li><a href="#" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Careers</a></li>
                 <li><a href="#" class="hover:text-brand-lime hover:translate-x-1 inline-block transition-all duration-200">Press</a></li>
             </ul>

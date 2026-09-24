@@ -1,0 +1,94 @@
+@page "/how-it-works"
+@rendermode InteractiveServer
+
+<PageTitle>How It Works - MediConsult Modern Healthcare</PageTitle>
+
+<div class="min-h-screen bg-white text-neutral-900 font-sans selection:bg-brand-lime selection:text-black flex flex-col justify-between">
+    <Navbar />
+
+    <!-- Subnav / Back Bar -->
+    <div class="max-w-7xl mx-auto w-full px-6 pt-8 pb-4 flex items-center justify-between border-b border-neutral-100">
+        <a href="/" class="inline-flex items-center space-x-2 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition group">
+            <svg class="w-4 h-4 text-neutral-500 group-hover:text-neutral-900 group-hover:-translate-x-1 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Back to Home</span>
+        </a>
+
+        <div class="flex items-center space-x-4">
+            <span class="hidden sm:inline-flex items-center space-x-1.5 text-xs text-neutral-600 bg-neutral-100 px-3 py-1.5 rounded-full border border-neutral-200">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Doctors online now</span>
+            </span>
+            <a href="/signup" class="motion-btn motion-btn-dark px-6 py-2.5 rounded-full bg-brand-dark text-xs font-bold text-white hover:bg-neutral-800 transition">
+                Book Consultation
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Full-Screen How It Works Section (Same Width as Landing Page) -->
+    <main class="max-w-7xl mx-auto w-full px-6 py-12 sm:py-20 flex-grow">
+        <HowItWorksInteractiveScreen />
+    </main>
+
+    <!-- Trust Assurances Strip (Clean, Full-Width, No Card) -->
+    <section class="border-t border-neutral-100 bg-[#FAFAFB] py-14">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-left">
+                <div class="space-y-1.5">
+                    <div class="flex items-center space-x-2 text-neutral-900">
+                        <svg class="w-4 h-4 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        <h4 class="text-xs font-bold uppercase tracking-wider">HIPAA Certified</h4>
+                    </div>
+                    <p class="text-xs text-neutral-500 leading-relaxed">
+                        End-to-end encrypted medical storage adhering to federal data governance protocols.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex items-center space-x-2 text-neutral-900">
+                        <svg class="w-4 h-4 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <h4 class="text-xs font-bold uppercase tracking-wider">Zero Wait Time</h4>
+                    </div>
+                    <p class="text-xs text-neutral-500 leading-relaxed">
+                        Average triage response time under 12 minutes across all 50 states.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex items-center space-x-2 text-neutral-900">
+                        <svg class="w-4 h-4 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <polyline points="16 11 18 13 22 9"></polyline>
+                        </svg>
+                        <h4 class="text-xs font-bold uppercase tracking-wider">200+ Specialists</h4>
+                    </div>
+                    <p class="text-xs text-neutral-500 leading-relaxed">
+                        Board-certified physicians verified through the Federation of State Medical Boards.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex items-center space-x-2 text-neutral-900">
+                        <svg class="w-4 h-4 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <h4 class="text-xs font-bold uppercase tracking-wider">4.9 Star Verified</h4>
+                    </div>
+                    <p class="text-xs text-neutral-500 leading-relaxed">
+                        Over 50,000 successful consultations with post-care patient satisfaction tracking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <Footer />
+</div>
