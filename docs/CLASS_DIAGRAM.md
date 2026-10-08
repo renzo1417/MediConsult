@@ -351,7 +351,7 @@ medconsult/
 ---
 
 ## 🔗 Submission References
-- **Mermaid Diagram:** Embedded above for instant viewing on GitHub.
-- **Interactive HTML Viewer & Exporter:** [class-diagram.html](file:///c:/Users/L23Y16W32/Documents/Medconsult/medconsult/docs/class-diagram.html)
-- **High-Resolution PNG:** [class-diagram.png](file:///c:/Users/L23Y16W32/Documents/Medconsult/medconsult/docs/class-diagram.png)
+- **Mermaid Diagram:** Embedded above for instant viewing on GitHub or pasting directly into draw.io.
 - **Repository Root:** [MediConsult Repository](https://github.com/renzo1417/MediConsult)
+- **Models Directory:** [MediConsult Models](https://github.com/renzo1417/MediConsult/tree/main/Models)
+
