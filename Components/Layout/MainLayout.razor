@@ -1,5 +1,18 @@
 @inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@Body
 
-<div class="min-h-screen bg-white">
-    @Body
-</div>
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("mediConsult.mount", Navigation.Uri);
+        }
+        catch (JSDisconnectedException)
+        {
+            // Blazor's reconnect notice handles an interrupted server connection.
+        }
+    }
+}
