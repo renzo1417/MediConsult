@@ -1,242 +1,247 @@
-// Motion.dev-inspired Interactive and Smooth Scroll Animations for MediConsult
+(() => {
+    "use strict";
 
-(function () {
-    // 1. Scroll Progress Bar
-    function initScrollProgress() {
-        const progressBar = document.getElementById('scroll-progress');
-        if (!progressBar) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
+    const panelAnimations = new WeakMap();
+    const closingDialogs = new WeakMap();
+    let mountedPage = null;
+    let generation = 0;
 
-        function updateProgress() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            if (scrollHeight > 0) {
-                const progress = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-                progressBar.style.width = progress + '%';
+    function cancelAnimation(element) {
+        const previous = panelAnimations.get(element);
+        if (previous) previous.cancel();
+        panelAnimations.delete(element);
+    }
+
+    function animatePanel(selector, animate = true) {
+        const element = typeof selector === "string" ? document.querySelector(selector) : selector;
+        if (!element) return;
+        cancelAnimation(element);
+        if (!animate || document.documentElement.dataset.input === "keyboard") return;
+        const frames = reduceMotion.matches
+            ? [{ opacity: 0.7 }, { opacity: 1 }]
+            : [{ opacity: 0.5, transform: "translateY(6px)" }, { opacity: 1, transform: "translateY(0)" }];
+        const animation = element.animate(frames, { duration: reduceMotion.matches ? 120 : 180, easing: easeOut });
+        panelAnimations.set(element, animation);
+        animation.finished.then(() => {
+            if (panelAnimations.get(element) === animation) panelAnimations.delete(element);
+            window.ScrollTrigger?.refresh(true);
+        }).catch(() => {});
+    }
+
+    function hideNavigation() {
+        document.querySelector(".mobile-navigation:popover-open")?.hidePopover();
+    }
+
+    function scrollToHash(hash, smooth = true, focus = false) {
+        if (!hash) return false;
+        let id;
+        try { id = decodeURIComponent(hash.slice(1)); } catch { return false; }
+        const target = document.getElementById(id);
+        if (!target) return false;
+        target.scrollIntoView({ behavior: smooth && !reduceMotion.matches ? "smooth" : "instant", block: "start" });
+        if (focus) {
+            target.setAttribute("tabindex", "-1");
+            target.focus({ preventScroll: true });
+        }
+        return true;
+    }
+
+    function installNavigation(signal) {
+        const links = [...document.querySelectorAll(".nav-links a, .nav-account a, .mobile-navigation a, .journey-nav a")];
+        const sectionLinks = links.map(link => ({ link, url: new URL(link.href) }))
+            .filter(({ url }) => url.pathname === location.pathname && url.hash);
+        const sections = [...new Set(sectionLinks.map(({ url }) => document.getElementById(url.hash.slice(1))).filter(Boolean))];
+        let frame = 0;
+
+        function update() {
+            frame = 0;
+            const probe = window.innerHeight * 0.35;
+            let current = null;
+            for (const section of sections) {
+                if (section.getBoundingClientRect().top <= probe) current = section.id;
+            }
+            for (const link of links) {
+                const url = new URL(link.href);
+                const isJourney = link.closest(".journey-nav");
+                const state = url.pathname === location.pathname
+                    ? (url.hash ? (url.hash.slice(1) === current ? (isJourney ? "step" : "location") : null) : "page")
+                    : null;
+                if (state) link.setAttribute("aria-current", state);
+                else link.removeAttribute("aria-current");
             }
         }
 
-        window.addEventListener('scroll', updateProgress, { passive: true });
-        updateProgress();
+        function schedule() {
+            if (!frame) frame = requestAnimationFrame(update);
+        }
+        window.addEventListener("scroll", schedule, { passive: true, signal });
+        window.addEventListener("resize", schedule, { passive: true, signal });
+        window.addEventListener("hashchange", schedule, { signal });
+        signal.addEventListener("abort", () => cancelAnimationFrame(frame), { once: true });
+        update();
+        return update;
     }
 
-    // 2. Intersection Observer for Scroll Reveals
-    let revealObserver = null;
+    function installMotion(main) {
+        if (!window.gsap || !window.ScrollTrigger) return null;
+        gsap.registerPlugin(ScrollTrigger);
+        const media = gsap.matchMedia();
+        media.add({
+            full: "(prefers-reduced-motion: no-preference)",
+            reduced: "(prefers-reduced-motion: reduce)"
+        }, context => {
+            const reduced = context.conditions.reduced;
+            document.documentElement.dataset.motion = reduced ? "reduced" : "full";
+            const hero = main.querySelector(".hero");
+            if (!location.hash && hero) {
+                const intro = gsap.timeline({ defaults: { ease: "power3.out", clearProps: "transform,opacity" } });
+                intro.fromTo(hero.querySelector("h1"), { opacity: reduced ? 0.8 : 0, y: reduced ? 0 : 24 },
+                    { opacity: 1, y: 0, duration: reduced ? 0.12 : 0.65 }, 0);
+                intro.fromTo(hero.querySelectorAll(".hero-support p, .hero-support small"),
+                    { opacity: reduced ? 0.8 : 0, y: reduced ? 0 : 12 },
+                    { opacity: 1, y: 0, duration: reduced ? 0.12 : 0.5, stagger: reduced ? 0 : 0.06 }, reduced ? 0 : 0.08);
+                intro.fromTo(hero.querySelector(".hero-workspace"), { opacity: reduced ? 0.8 : 0, y: reduced ? 0 : 24 },
+                    { opacity: 1, y: 0, duration: reduced ? 0.12 : 0.7 }, reduced ? 0 : 0.14);
+            }
+            // Forms stay stationary. Only their static image panel receives an entrance.
+            const brand = main.querySelector(".auth-brand");
+            if (brand && getComputedStyle(brand).display !== "none") {
+                gsap.fromTo(brand, { opacity: reduced ? 0.8 : 0 },
+                    { opacity: 1, duration: reduced ? 0.12 : 0.45, clearProps: "opacity" });
+            }
+            if (reduced) return;
 
-    function initScrollReveals() {
-        const revealElements = document.querySelectorAll('.reveal-on-scroll:not(.is-visible), .reveal-fade:not(.is-visible), .reveal-scale:not(.is-visible)');
-        if (!revealElements.length) return;
-
-        if (!revealObserver) {
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px 0px -40px 0px',
-                threshold: 0.08
-            };
-
-            revealObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
+            const groups = main.querySelectorAll(
+                ".services .section-heading, .bento-grid, .process .section-heading, .process-layout, " +
+                ".story-layout, .pricing-layout, .testimonials .section-heading, .testimonials .review-grid, " +
+                ".faq-layout, .cta-panel, .journey-step, .rating-layout"
+            );
+            for (const group of groups) {
+                if (group.getBoundingClientRect().bottom < 0) continue;
+                const targets = group.matches(".bento-grid") ? [...group.children] : [group];
+                gsap.fromTo(targets, { opacity: 0, y: 20 }, {
+                    opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.06,
+                    clearProps: "transform,opacity", immediateRender: false,
+                    scrollTrigger: { trigger: group, start: "top 92%", once: true }
                 });
-            }, observerOptions);
-        }
-
-        revealElements.forEach(el => {
-            // If already in viewport on load, reveal immediately
-            const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight && rect.bottom > 0) {
-                el.classList.add('is-visible');
-            } else {
-                revealObserver.observe(el);
             }
+        }, main);
+        return media;
+    }
+
+    async function mount(uri) {
+        const url = new URL(uri, location.origin);
+        const main = document.getElementById("main");
+        const key = url.pathname + url.search;
+        if (!main) return;
+        if (mountedPage?.main === main && mountedPage.key === key) return;
+        const token = ++generation;
+        mountedPage?.controller.abort();
+        mountedPage?.motion?.revert();
+        const controller = new AbortController();
+        const state = { main, key, controller, motion: null };
+        mountedPage = state;
+        hideNavigation();
+        await document.fonts.ready;
+        if (token !== generation || !main.isConnected) return;
+        state.motion = installMotion(main);
+        const updateNavigation = installNavigation(controller.signal);
+        main.querySelectorAll("img[loading='lazy']").forEach(img => {
+            if (!img.complete) img.addEventListener("load", () => window.ScrollTrigger?.refresh(true),
+                { once: true, signal: controller.signal });
         });
+        document.documentElement.dataset.interactiveReady = "true";
+        // The router focuses the heading first. Resolve fragments after that render.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (token !== generation) return;
+            scrollToHash(location.hash, false);
+            updateNavigation();
+        }));
     }
 
-    // 3. Motion.dev Button Haptic/Spring Interaction Helper
-    function initMotionButtons() {
-        const buttons = document.querySelectorAll('.motion-btn');
-        buttons.forEach(btn => {
-            if (btn._hasMotionDevInit) return;
-            btn._hasMotionDevInit = true;
-
-            // Subtle magnetic / spring cursor tracking
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                // Subtle magnet pull: max 3px
-                const pullX = (x / rect.width) * 4;
-                const pullY = (y / rect.height) * 4;
-                btn.style.transform = `translate(${pullX}px, ${pullY - 2}px) scale(1.025)`;
-            });
-
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = '';
-            });
-
-            btn.addEventListener('mousedown', () => {
-                btn.style.transform = 'translateY(1px) scale(0.96)';
-            });
-
-            btn.addEventListener('mouseup', () => {
-                btn.style.transform = 'translateY(-2px) scale(1.025)';
-            });
-        });
-    }
-
-    // 4. Interactive Card Spotlight Effect
-    function initCardSpotlights() {
-        const cards = document.querySelectorAll('.motion-card-spotlight');
-        cards.forEach(card => {
-            if (card._hasSpotlightInit) return;
-            card._hasSpotlightInit = true;
-
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--spotlight-x', `${x}px`);
-                card.style.setProperty('--spotlight-y', `${y}px`);
-            });
-        });
-    }
-
-    // 5. Cross-Page & In-Page Anchor Navigation System
-    let isScrolling = false;
-
-    function getTargetOffset(el) {
-        const navHeight = 84; // Navbar height + breathing margin
-        const rect = el.getBoundingClientRect();
-        return rect.top + window.pageYOffset - navHeight;
-    }
-
-    function smoothScrollToTarget(targetId) {
-        if (!targetId) return false;
-        const el = document.getElementById(targetId);
-        if (el) {
-            const offset = getTargetOffset(el);
-            window.scrollTo({
-                top: Math.max(0, offset),
-                behavior: 'smooth'
-            });
-            return true;
+    function openDialog(id, animate = true) {
+        const dialog = document.getElementById(id);
+        if (!dialog) return;
+        const closing = closingDialogs.get(dialog);
+        if (closing) { cancelAnimation(dialog); closingDialogs.delete(dialog); }
+        dialog.removeAttribute("data-closing");
+        if (!dialog.open) {
+            dialog.returnFocus = document.activeElement;
+            dialog.showModal();
         }
-        return false;
+        if (!animate || reduceMotion.matches) return;
+        cancelAnimation(dialog);
+        const animation = dialog.animate(
+            [{ opacity: 0, transform: "translateY(8px) scale(0.97)" }, { opacity: 1, transform: "translateY(0) scale(1)" }],
+            { duration: 220, easing: easeOut });
+        panelAnimations.set(dialog, animation);
+        animation.finished.catch(() => {});
     }
 
-    function checkAndExecutePendingScroll() {
-        if (isScrolling) return;
-        const pending = sessionStorage.getItem('medconsult_scroll_target');
-        const hashTarget = window.location.hash ? window.location.hash.replace('#', '') : null;
-        const targetId = pending || hashTarget;
+    async function closeDialog(id, animate = true) {
+        const dialog = document.getElementById(id);
+        if (!dialog?.open || closingDialogs.has(dialog)) return;
+        const token = {};
+        closingDialogs.set(dialog, token);
+        const style = getComputedStyle(dialog);
+        const start = { opacity: style.opacity, transform: style.transform };
+        cancelAnimation(dialog);
+        if (animate && !reduceMotion.matches && document.documentElement.dataset.input !== "keyboard") {
+            dialog.setAttribute("data-closing", "");
+            const animation = dialog.animate(
+                [start, { opacity: 0, transform: "translateY(8px) scale(0.97)" }],
+                { duration: 180, easing: easeOut });
+            panelAnimations.set(dialog, animation);
+            await animation.finished.catch(() => {});
+        }
+        if (closingDialogs.get(dialog) !== token) return;
+        cancelAnimation(dialog);
+        closingDialogs.delete(dialog);
+        dialog.close();
+        dialog.removeAttribute("data-closing");
+        if (dialog.returnFocus?.isConnected) dialog.returnFocus.focus({ preventScroll: true });
+    }
 
-        if (!targetId) return;
-
-        // Try immediate scroll
-        const el = document.getElementById(targetId);
-        if (el) {
-            isScrolling = true;
-            sessionStorage.removeItem('medconsult_scroll_target');
-            setTimeout(() => {
-                smoothScrollToTarget(targetId);
-                setTimeout(() => { isScrolling = false; }, 600);
-            }, 60);
+    document.addEventListener("pointerdown", () => document.documentElement.dataset.input = "pointer", { passive: true });
+    document.addEventListener("keydown", event => {
+        document.documentElement.dataset.input = "keyboard";
+        if (event.target.matches("[role='tab']") && ["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key))
+            event.preventDefault();
+    });
+    document.addEventListener("toggle", event => {
+        if (!event.target.matches(".mobile-navigation")) return;
+        const trigger = document.querySelector("[popovertarget='mobile-navigation']");
+        const open = event.newState === "open";
+        trigger?.setAttribute("aria-expanded", String(open));
+        trigger?.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    }, true);
+    document.addEventListener("click", event => {
+        if (event.target instanceof HTMLDialogElement && event.target.open) {
+            const dialog = event.target;
+            const bounds = dialog.getBoundingClientRect();
+            if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)
+                closeDialog(dialog.id, event.detail > 0);
             return;
         }
-
-        // If not in DOM yet (e.g. Blazor WebSocket rendering delay), poll up to 2 seconds
-        let attempts = 0;
-        const poll = setInterval(() => {
-            attempts++;
-            const targetEl = document.getElementById(targetId);
-            if (targetEl) {
-                clearInterval(poll);
-                sessionStorage.removeItem('medconsult_scroll_target');
-                isScrolling = true;
-                setTimeout(() => {
-                    smoothScrollToTarget(targetId);
-                    setTimeout(() => { isScrolling = false; }, 600);
-                }, 60);
-            } else if (attempts >= 40) {
-                clearInterval(poll);
-                sessionStorage.removeItem('medconsult_scroll_target');
-            }
-        }, 50);
-    }
-
-    // Global anchor click listener for hash links & back to landing page
-    document.addEventListener('click', (e) => {
-        const anchor = e.target.closest('a');
-        if (!anchor) return;
-        const href = anchor.getAttribute('href');
-        if (!href) return;
-
-        // Handle hash navigation (e.g. "/#about", "/#services", "/#pricing", "#about", etc.)
-        if (href.startsWith('/#') || (href.startsWith('#') && href.length > 1)) {
-            const hashIndex = href.indexOf('#');
-            const targetId = href.substring(hashIndex + 1);
-            const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-
-            if (currentPath === '/') {
-                // Already on the landing page: smooth scroll directly
-                const el = document.getElementById(targetId);
-                if (el) {
-                    e.preventDefault();
-                    history.pushState(null, '', '/#' + targetId);
-                    smoothScrollToTarget(targetId);
-                }
-            } else {
-                // On another page (e.g. /how-it-works): save target and navigate to landing page
-                e.preventDefault();
-                sessionStorage.setItem('medconsult_scroll_target', targetId);
-                window.location.href = '/#' + targetId;
-            }
-        } else if (href === '/' || href === '') {
-            // Home / Logo / Back to landing page
-            const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-            if (currentPath === '/') {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                history.pushState(null, '', '/');
-            }
+        const link = event.target.closest("a[href]");
+        if (!link || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey ||
+            link.target === "_blank" || link.hasAttribute("download")) return;
+        const href = link.getAttribute("href");
+        const url = href.startsWith("#") ? new URL(href, location.href) : new URL(link.href);
+        if (url.origin !== location.origin) return;
+        hideNavigation();
+        if (url.pathname === location.pathname && url.search === location.search && url.hash) {
+            event.preventDefault();
+            if (location.hash !== url.hash) history.pushState(null, "", url.href);
+            scrollToHash(url.hash, true, event.detail === 0);
         }
     });
+    window.addEventListener("popstate", () => scrollToHash(location.hash, false));
 
-    window.addEventListener('hashchange', () => {
-        const hash = window.location.hash.replace('#', '');
-        if (hash) {
-            smoothScrollToTarget(hash);
-        }
-    });
-
-    // 6. Initialize & Observe DOM mutations (for Blazor re-renders)
-    function setupAll() {
-        initScrollProgress();
-        initScrollReveals();
-        initMotionButtons();
-        initCardSpotlights();
-        checkAndExecutePendingScroll();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupAll);
-    } else {
-        setupAll();
-    }
-
-    // Check hash scroll immediately on initial script execution
-    checkAndExecutePendingScroll();
-
-    // Watch for Blazor DOM updates / route navigation
-    const observer = new MutationObserver(() => {
-        setupAll();
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    window.mediConsult = {
+        mount, animatePanel, openDialog, closeDialog,
+        focusElement: id => document.getElementById(id)?.focus({ preventScroll: true })
+    };
 })();
-

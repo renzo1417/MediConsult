@@ -482,3 +482,39 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# =====================================================================
+# Additional Local Overrides & Modern Tooling Additions
+# =====================================================================
+
+# Local AppSettings & Secrets
+appsettings*.local.json
+appsettings.Local.json
+appsettings.Development.local.json
+appsettings.Production.json
+secrets.json
+
+# Environment files
+.env.local
+.env.*.local
+
+# AI Assistants, Agent Metadata & IDE Artifacts
+.antigravity/
+.gemini/
+.claude/
+.cursor/
+.windsurf/
+.copilot/
+.idea/
+
+# Package & Bundler Caches / Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Crash & Memory Dumps
+*.dmp
+*.crash
+
