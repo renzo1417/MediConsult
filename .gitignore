@@ -482,3 +482,10 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Local environment, secrets, and Supabase CLI temp files
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
+supabase/.temp/

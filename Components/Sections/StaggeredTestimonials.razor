@@ -1,4 +1,6 @@
 @rendermode InteractiveServer
+@inject Supabase.Client Db
+@using static Supabase.Postgrest.Constants
 
 <div class="w-full relative select-none">
     <!-- Header Section -->
@@ -9,7 +11,7 @@
                     Verified Stories
                 </span>
                 <span class="text-xs text-neutral-500 font-medium">
-                    @FilteredReviews.Count verified consultations
+                    @DisplayReviews.Count verified @(DisplayReviews.Count == 1 ? "consultation" : "consultations")
                 </span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
@@ -20,7 +22,7 @@
             </p>
         </div>
 
-        <!-- Clean Responsive Dropdown ("Dropbox") Selector -->
+        <!-- Clean Responsive Dropdown Selector (DB-side filtered) -->
         <div class="relative flex-shrink-0">
             <button type="button"
                     @onclick="ToggleDropdown"
@@ -31,7 +33,7 @@
                 <span class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-brand-lime shadow-2xs"></span>
                     <span class="text-neutral-500 font-normal">Category:</span>
-                    <span class="font-bold text-neutral-900">@selectedCategory</span>
+                    <span class="font-bold text-neutral-900">@EffectiveCategory</span>
                 </span>
                 <svg class="w-4 h-4 text-neutral-500 group-hover:text-neutral-900 transition-transform duration-200 @(isDropdownOpen ? "rotate-180" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -45,10 +47,10 @@
                      role="listbox">
                     @foreach (var cat in categories)
                     {
-                        var isSelected = (selectedCategory == cat);
+                        var isSelected = (EffectiveCategory == cat);
                         <button type="button"
-                                @onclick="() => SelectCategoryAndClose(cat)"
-                                class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors @(isSelected ? "bg-neutral-100 text-neutral-950 font-bold" : "text-neutral-600 hover:text-neutral-950 hover:bg-neutral-50")"
+                                @onclick="() => SelectCategoryAndCloseAsync(cat)"
+                                class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer @(isSelected ? "bg-neutral-100 text-neutral-950 font-bold" : "text-neutral-600 hover:text-neutral-950 hover:bg-neutral-50")"
                                 role="option"
                                 aria-selected="@isSelected">
                             <span>@cat</span>
@@ -65,165 +67,214 @@
         </div>
     </div>
 
-    <!-- 3D Coverflow Stage Viewport -->
-    <div class="coverflow-viewport my-4">
-        @for (int i = 0; i < FilteredReviews.Count; i++)
-        {
-            var index = i;
-            var review = FilteredReviews[index];
-            var offset = index - activeIndex;
-            var isCenter = (offset == 0);
-            var cardStyle = GetCard3DStyle(offset);
+    @if (isLoading && DisplayReviews.Count == 0)
+    {
+        <div class="my-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-12 text-center text-sm text-neutral-500">
+            Loading verified patient reviews...
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(loadError))
+    {
+        <div class="my-8 rounded-3xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700">
+            @loadError
+        </div>
+    }
+    else if (DisplayReviews.Count == 0)
+    {
+        <div class="my-8 rounded-3xl border border-neutral-200 bg-[#F8F9FA] p-12 text-center space-y-2">
+            <p class="text-base font-bold text-neutral-900">No reviews in this category yet</p>
+            <p class="text-xs text-neutral-500">Select another category or publish the first verified story above.</p>
+        </div>
+    }
+    else
+    {
+        <!-- 3D Coverflow Stage Viewport -->
+        <div class="coverflow-viewport my-4">
+            @for (int i = 0; i < DisplayReviews.Count; i++)
+            {
+                var index = i;
+                var review = DisplayReviews[index];
+                var safeActive = SafeActiveIndex;
+                var offset = index - safeActive;
+                var isCenter = (offset == 0);
+                var cardStyle = GetCard3DStyle(offset);
+                var filledStars = Math.Clamp((int)Math.Round(review.Rating), 1, 5);
 
-            <div class="coverflow-card"
-                 style="@cardStyle"
-                 @onclick="() => SelectCard(index)">
-                
-                @if (isCenter)
-                {
-                    <!-- Active Center Card: Light Theme, Elevated, High Contrast, Chamfered Corner -->
-                    <div class="chamfer-clip bg-neutral-300 p-[1.5px] w-full h-full shadow-[0_24px_50px_-12px_rgba(18,22,30,0.22)]">
-                        <div class="chamfer-clip-sm bg-[#ECEFF2] text-neutral-950 w-full h-full p-7 sm:p-9 flex flex-col justify-between">
-                            <div>
-                                <!-- Top Bar: Patient Avatar + Star Rating & Verification -->
-                                <div class="flex items-start justify-between gap-3 mb-4">
-                                    <div class="flex items-center space-x-3.5">
-                                        @if (!string.IsNullOrEmpty(review.AvatarUrl))
+                <div class="coverflow-card"
+                     style="@cardStyle"
+                     @onclick="() => SelectCard(index)">
+
+                    @if (isCenter)
+                    {
+                        <!-- Active Center Card: Light Theme, Elevated, High Contrast, Chamfered Corner -->
+                        <div class="chamfer-clip bg-neutral-300 p-[1.5px] w-full h-full shadow-[0_24px_50px_-12px_rgba(18,22,30,0.22)]">
+                            <div class="chamfer-clip-sm bg-[#ECEFF2] text-neutral-950 w-full h-full p-7 sm:p-9 flex flex-col justify-between">
+                                <div>
+                                    <!-- Top Bar: Patient Avatar + Star Rating & Verification -->
+                                    <div class="flex items-start justify-between gap-3 mb-4">
+                                        <div class="flex items-center space-x-3.5">
+                                            @if (!string.IsNullOrEmpty(review.AvatarUrl))
+                                            {
+                                                <img src="@review.AvatarUrl"
+                                                     alt="@review.AuthorName"
+                                                     class="w-13 h-13 rounded-2xl object-cover border border-neutral-300 shadow-sm flex-shrink-0" />
+                                            }
+                                            else
+                                            {
+                                                <div class="w-13 h-13 rounded-2xl bg-brand-lime text-neutral-950 font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+                                                    @review.Initials
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="flex items-center space-x-1">
+                                                    @for (int s = 1; s <= 5; s++)
+                                                    {
+                                                        var starClass = s <= filledStars ? "fill-amber-400 text-amber-400" : "fill-neutral-300 text-neutral-300";
+                                                        <svg class="w-4 h-4 @starClass flex-shrink-0" viewBox="0 0 24 24">
+                                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                        </svg>
+                                                    }
+                                                </div>
+                                                <span class="text-[11px] font-bold text-neutral-800">@review.Rating.ToString("0.0") Out of 5.0</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Verified Badge -->
+                                        <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-[11px] font-bold bg-brand-lime text-neutral-950 border border-black/10 shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-neutral-950 flex-shrink-0 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            <span>Verified</span>
+                                        </span>
+                                    </div>
+
+                                    <!-- Headline + Quote Body -->
+                                    @if (!string.IsNullOrWhiteSpace(review.Title))
+                                    {
+                                        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mt-1">
+                                            @review.Title
+                                        </p>
+                                    }
+                                    <p class="text-lg sm:text-xl font-bold text-neutral-950 leading-snug tracking-tight line-clamp-3 my-3">
+                                        “@review.Quote”
+                                    </p>
+                                </div>
+
+                                <!-- Attribution & Optional Actions -->
+                                <div class="pt-4 border-t border-neutral-300/80 flex items-center justify-between gap-2 text-xs">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-neutral-900 leading-tight truncate">@review.AuthorName</p>
+                                        <p class="text-[11px] text-neutral-600 mt-0.5 truncate">@review.AuthorRole</p>
+                                    </div>
+                                    <div class="flex items-center space-x-1.5 flex-shrink-0">
+                                        @if (ShowActions)
                                         {
-                                            <img src="@review.AvatarUrl" 
-                                                 alt="@review.Author" 
-                                                 class="w-13 h-13 rounded-2xl object-cover border border-neutral-300 shadow-sm flex-shrink-0" />
+                                            <button type="button"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => OnEditRequested.InvokeAsync(review)"
+                                                    class="px-2.5 py-1 rounded-full bg-white border border-neutral-300 hover:border-neutral-900 text-[11px] font-semibold text-neutral-800 transition cursor-pointer">
+                                                Edit
+                                            </button>
+                                            <button type="button"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => OnDeleteRequested.InvokeAsync(review)"
+                                                    class="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 hover:bg-red-600 hover:text-white text-[11px] font-semibold text-red-700 transition cursor-pointer">
+                                                Delete
+                                            </button>
                                         }
                                         else
                                         {
-                                            <div class="w-13 h-13 rounded-2xl bg-brand-lime text-neutral-950 font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+                                            <span class="text-[11px] font-semibold text-neutral-500 bg-neutral-200/90 px-3 py-1 rounded-full">
+                                                @review.FormatRelativeTime()
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Flanking Cards: Dark Theme, Tilted in 3D Perspective, Chamfered Corner -->
+                        <div class="chamfer-clip bg-neutral-800/80 p-[1px] w-full h-full hover:bg-neutral-700 transition-colors">
+                            <div class="chamfer-clip-sm bg-[#161B24] text-white w-full h-full p-6 sm:p-7 flex flex-col justify-between">
+                                <div>
+                                    <!-- Top Bar -->
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        @if (!string.IsNullOrEmpty(review.AvatarUrl))
+                                        {
+                                            <img src="@review.AvatarUrl"
+                                                 alt="@review.AuthorName"
+                                                 class="w-11 h-11 rounded-xl object-cover border border-neutral-700 opacity-80" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-11 h-11 rounded-xl bg-neutral-800 text-brand-lime font-bold text-xs flex items-center justify-center flex-shrink-0 border border-neutral-700">
                                                 @review.Initials
                                             </div>
                                         }
                                         <div>
-                                            <div class="flex items-center space-x-1">
-                                                @for (int s = 0; s < 5; s++)
+                                            <div class="flex items-center space-x-1 opacity-80">
+                                                @for (int s = 1; s <= 5; s++)
                                                 {
-                                                    <svg class="w-4 h-4 fill-amber-400 text-amber-400 flex-shrink-0" viewBox="0 0 24 24">
+                                                    var starClass = s <= filledStars ? "fill-amber-400 text-amber-400" : "fill-neutral-700 text-neutral-700";
+                                                    <svg class="w-3.5 h-3.5 @starClass" viewBox="0 0 24 24">
                                                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                                     </svg>
                                                 }
                                             </div>
-                                            <span class="text-[11px] font-bold text-neutral-800">5.0 Out of 5.0</span>
+                                            <span class="text-[10px] text-neutral-400 font-medium">@review.Rating.ToString("0.0") Star</span>
                                         </div>
                                     </div>
 
-                                    <!-- Verified Badge -->
-                                    <span class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-[11px] font-bold bg-brand-lime text-neutral-950 border border-black/10 shadow-2xs">
-                                        <svg class="w-3.5 h-3.5 text-neutral-950 flex-shrink-0 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                        <span>Verified</span>
+                                    <!-- Quote Body -->
+                                    <p class="text-base font-medium text-neutral-200 leading-snug tracking-tight line-clamp-3 my-3">
+                                        “@review.Quote”
+                                    </p>
+                                </div>
+
+                                <!-- Attribution -->
+                                <div class="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-neutral-200 leading-tight truncate">@review.AuthorName</p>
+                                        <p class="text-[10px] text-neutral-400 mt-0.5 truncate">@review.AuthorRole</p>
+                                    </div>
+                                    <span class="text-[10px] text-neutral-500 flex-shrink-0">
+                                        @review.FormatRelativeTime()
                                     </span>
                                 </div>
-
-                                <!-- Quote Body (Typographic quotes, Max 3 lines, zero em-dashes) -->
-                                <p class="text-lg sm:text-xl font-bold text-neutral-950 leading-snug tracking-tight line-clamp-3 my-4">
-                                    “@review.Quote”
-                                </p>
-                            </div>
-
-                            <!-- Attribution (Zero em-dashes) -->
-                            <div class="pt-4 border-t border-neutral-300/80 flex items-center justify-between text-xs">
-                                <div>
-                                    <p class="font-bold text-neutral-900 leading-tight">@review.Author</p>
-                                    <p class="text-[11px] text-neutral-600 mt-0.5">@review.Role</p>
-                                </div>
-                                <span class="text-[11px] font-semibold text-neutral-500 bg-neutral-200/90 px-3 py-1 rounded-full">
-                                    @review.TimeAgo
-                                </span>
                             </div>
                         </div>
-                    </div>
-                }
-                else
-                {
-                    <!-- Flanking Cards: Dark Theme, Tilted in 3D Perspective, Chamfered Corner -->
-                    <div class="chamfer-clip bg-neutral-800/80 p-[1px] w-full h-full hover:bg-neutral-700 transition-colors">
-                        <div class="chamfer-clip-sm bg-[#161B24] text-white w-full h-full p-6 sm:p-7 flex flex-col justify-between">
-                            <div>
-                                <!-- Top Bar -->
-                                <div class="flex items-center space-x-3 mb-4">
-                                    @if (!string.IsNullOrEmpty(review.AvatarUrl))
-                                    {
-                                        <img src="@review.AvatarUrl" 
-                                             alt="@review.Author" 
-                                             class="w-11 h-11 rounded-xl object-cover border border-neutral-700 opacity-80" />
-                                    }
-                                    else
-                                    {
-                                        <div class="w-11 h-11 rounded-xl bg-neutral-800 text-brand-lime font-bold text-xs flex items-center justify-center flex-shrink-0 border border-neutral-700">
-                                            @review.Initials
-                                        </div>
-                                    }
-                                    <div>
-                                        <div class="flex items-center space-x-1 opacity-80">
-                                            @for (int s = 0; s < 5; s++)
-                                            {
-                                                <svg class="w-3.5 h-3.5 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
-                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                                </svg>
-                                            }
-                                        </div>
-                                        <span class="text-[10px] text-neutral-400 font-medium">5.0 Star</span>
-                                    </div>
-                                </div>
-
-                                <!-- Quote Body (Typographic quotes, Max 3 lines, zero em-dashes) -->
-                                <p class="text-base font-medium text-neutral-200 leading-snug tracking-tight line-clamp-3 my-3">
-                                    “@review.Quote”
-                                </p>
-                            </div>
-
-                            <!-- Attribution (Zero em-dashes) -->
-                            <div class="pt-3 border-t border-neutral-800 flex items-center justify-between text-xs">
-                                <div>
-                                    <p class="font-bold text-neutral-200 leading-tight">@review.Author</p>
-                                    <p class="text-[10px] text-neutral-400 mt-0.5">@review.Role</p>
-                                </div>
-                                <span class="text-[10px] text-neutral-500">
-                                    @review.TimeAgo
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    </div>
-
-    <!-- Bottom Carousel Controls -->
-    <div class="relative z-10 flex items-center justify-center space-x-3 mt-8">
-        <!-- Previous Button -->
-        <button type="button" 
-                @onclick="PrevCard" 
-                class="motion-btn w-12 h-12 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 text-neutral-800 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-95 shadow-2xs hover:shadow-xs group cursor-pointer"
-                aria-label="Previous testimonial">
-            <svg class="w-5 h-5 stroke-[2.5] group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
-
-        <!-- Position Counter Pill -->
-        <div class="px-4 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-mono text-neutral-500 shadow-2xs">
-            <span class="text-neutral-900 font-bold">@(activeIndex + 1)</span> / <span>@FilteredReviews.Count</span>
+                    }
+                </div>
+            }
         </div>
 
-        <!-- Next Button -->
-        <button type="button" 
-                @onclick="NextCard" 
-                class="motion-btn w-12 h-12 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 text-neutral-800 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-95 shadow-2xs hover:shadow-xs group cursor-pointer"
-                aria-label="Next testimonial">
-            <svg class="w-5 h-5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-        </button>
-    </div>
+        <!-- Bottom Carousel Controls -->
+        <div class="relative z-10 flex items-center justify-center space-x-3 mt-8">
+            <button type="button"
+                    @onclick="PrevCard"
+                    class="motion-btn w-12 h-12 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 text-neutral-800 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-95 shadow-2xs hover:shadow-xs group cursor-pointer"
+                    aria-label="Previous testimonial">
+                <svg class="w-5 h-5 stroke-[2.5] group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
+            <div class="px-4 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-mono text-neutral-500 shadow-2xs">
+                <span class="text-neutral-900 font-bold">@(SafeActiveIndex + 1)</span> / <span>@DisplayReviews.Count</span>
+            </div>
+
+            <button type="button"
+                    @onclick="NextCard"
+                    class="motion-btn w-12 h-12 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 text-neutral-800 hover:text-black flex items-center justify-center transition-all duration-200 active:scale-95 shadow-2xs hover:shadow-xs group cursor-pointer"
+                    aria-label="Next testimonial">
+                <svg class="w-5 h-5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+    }
 </div>
 
 @if (isModalOpen)
@@ -233,17 +284,13 @@
          role="dialog"
          aria-modal="true"
          aria-labelledby="modalTitle">
-        
-        <!-- Backdrop Blur Curtain (Click Outside Dismisses) -->
+
         <div class="fixed inset-0 bg-neutral-950/80 backdrop-blur-md transition-opacity duration-300"
              @onclick="CloseModal"></div>
 
-        <!-- Floating Dialog Card -->
         <div class="relative w-full max-w-xl bg-[#0D1016] text-white rounded-3xl border border-neutral-800 shadow-[0_25px_80px_rgba(0,0,0,0.95)] p-6 sm:p-8 overflow-hidden z-10 my-auto animate-modal-float select-text">
-            <!-- Ambient Stage Glow inside modal -->
             <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-44 bg-brand-lime/15 blur-[80px] rounded-full pointer-events-none"></div>
 
-            <!-- Top Row: Eyebrow + Close Button -->
             <div class="relative z-10 flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2.5">
                     <span class="inline-block px-3 py-1 rounded-lg bg-brand-lime text-neutral-950 text-[11px] font-bold uppercase tracking-wider shadow-xs">
@@ -268,19 +315,17 @@
                 </button>
             </div>
 
-            <!-- Title & Subtitle -->
             <div class="relative z-10 mb-5">
                 <h3 id="modalTitle" class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
                     Rate Your Experience
                 </h3>
                 <p class="text-neutral-400 text-xs sm:text-sm mt-1 leading-relaxed">
-                    Help fellow patients make informed healthcare decisions. Your review will be cross-referenced with your consultation record and featured directly in the patient showcase carousel.
+                    Help fellow patients make informed healthcare decisions. Your review is saved directly to MediConsult's verified registry.
                 </p>
             </div>
 
             @if (submissionSuccess)
             {
-                <!-- Success State Screen -->
                 <div class="relative z-10 bg-[#161B24] border border-brand-lime/30 rounded-2xl p-6 text-center space-y-4">
                     <div class="w-14 h-14 mx-auto rounded-full bg-brand-lime/20 border border-brand-lime/40 flex items-center justify-center text-brand-lime shadow-[0_0_20px_rgba(180,244,53,0.3)]">
                         <svg class="w-7 h-7 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -290,7 +335,7 @@
                     <div>
                         <h4 class="text-lg font-bold text-white">Review Verified &amp; Published!</h4>
                         <p class="text-xs sm:text-sm text-neutral-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                            Thank you, <span class="text-white font-semibold">@reviewerName</span>! Your consultation review has been verified and added to the 3D coverflow showcase.
+                            Thank you, <span class="text-white font-semibold">@reviewerName</span>! Your consultation review has been saved to the database.
                         </p>
                     </div>
                     <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -309,9 +354,7 @@
             }
             else
             {
-                <!-- Submission Form -->
-                <form @onsubmit="HandleModalSubmit" class="relative z-10 space-y-4">
-                    <!-- Rating Star Picker -->
+                <form @onsubmit="HandleModalSubmitAsync" class="relative z-10 space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-neutral-300 mb-1.5">
                             Consultation Rating
@@ -349,7 +392,6 @@
                         </div>
                     </div>
 
-                    <!-- 2-Column: Name & Service -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
                             <label for="modalReviewerName" class="block text-xs font-semibold text-neutral-300 mb-1">
@@ -377,7 +419,6 @@
                         </div>
                     </div>
 
-                    <!-- Headline -->
                     <div>
                         <label for="modalReviewTitle" class="block text-xs font-semibold text-neutral-300 mb-1">
                             Review Headline
@@ -390,7 +431,6 @@
                                class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-800 bg-[#161B24] text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-brand-lime focus:ring-1 focus:ring-brand-lime transition" />
                     </div>
 
-                    <!-- Experience Comment -->
                     <div>
                         <label for="modalReviewComment" class="block text-xs font-semibold text-neutral-300 mb-1">
                             Your Consultation Experience
@@ -410,18 +450,15 @@
                         </div>
                     }
 
-                    <!-- Submit Button -->
                     <button type="submit"
-                            class="motion-btn motion-btn-lime w-full py-3.5 rounded-full text-neutral-950 font-bold text-xs sm:text-sm shadow-[0_4px_20px_rgba(180,244,53,0.3)] hover:shadow-[0_8px_30px_rgba(180,244,53,0.5)] flex items-center justify-center space-x-2 cursor-pointer">
-                        <span>Submit &amp; Verify Story</span>
+                            disabled="@modalSaving"
+                            class="motion-btn motion-btn-lime w-full py-3.5 rounded-full text-neutral-950 font-bold text-xs sm:text-sm shadow-[0_4px_20px_rgba(180,244,53,0.3)] hover:shadow-[0_8px_30px_rgba(180,244,53,0.5)] flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>@(modalSaving ? "Saving..." : "Submit & Verify Story")</span>
                         <svg class="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
                     </button>
-                    <p class="text-center text-[10px] text-neutral-500 pt-0.5">
-                        Zero spam &middot; HIPAA compliant feedback privacy &middot; Instant carousel verification
-                    </p>
                 </form>
             }
         </div>
@@ -429,17 +466,26 @@
 }
 
 @code {
-    [Parameter] public List<ReviewItem>? CustomReviews { get; set; }
-    [Parameter] public EventCallback<ReviewItem> OnReviewAdded { get; set; }
+    [Parameter] public List<ReviewModel>? CustomReviews { get; set; }
+    [Parameter] public string? SelectedCategory { get; set; }
+    [Parameter] public bool ShowActions { get; set; }
+    [Parameter] public EventCallback<string> OnCategoryChanged { get; set; }
+    [Parameter] public EventCallback<ReviewModel> OnReviewAdded { get; set; }
+    [Parameter] public EventCallback<ReviewModel> OnEditRequested { get; set; }
+    [Parameter] public EventCallback<ReviewModel> OnDeleteRequested { get; set; }
 
-    // Start on index 1 so flanking cards are visible on both left and right on load
+    private List<ReviewModel> standaloneReviews = new();
+    private bool isLoading;
+    private string? loadError;
+
     private int activeIndex = 1;
-    private string selectedCategory = "All Reviews";
+    private string localCategory = "All Reviews";
     private bool isDropdownOpen = false;
 
     // Floating Modal & Review Form State
     private bool isModalOpen = false;
     private bool submissionSuccess = false;
+    private bool modalSaving = false;
     private int selectedRating = 5;
     private int hoverRating = 0;
     private string reviewerName = "";
@@ -457,162 +503,102 @@
         "Diagnostics"
     };
 
-    private List<ReviewItem> defaultReviews = new()
+    private List<ReviewModel> DisplayReviews => CustomReviews ?? standaloneReviews;
+    private string EffectiveCategory => SelectedCategory ?? localCategory;
+
+    private int SafeActiveIndex => DisplayReviews.Count == 0
+        ? 0
+        : Math.Clamp(activeIndex, 0, DisplayReviews.Count - 1);
+
+    protected override async Task OnInitializedAsync()
     {
-        new ReviewItem
+        if (CustomReviews is null)
         {
-            Author = "Pete Gallagher",
-            Role = "Director of Operations, Corporate Wellness",
-            Initials = "PG",
-            AvatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-            Title = "Found the right solution",
-            Quote = "I have been searching for a telehealth service like MediConsult for years. Direct physician video in minutes and zero pharmacy wait times.",
-            Service = "Urgent Telehealth",
-            Category = "Video Telehealth",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "2 days ago"
-        },
-        new ReviewItem
-        {
-            Author = "Andy Kovacs",
-            Role = "DevOps Engineer, Cloud Systems",
-            Initials = "AK",
-            AvatarUrl = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-            Title = "Switched and never looked back",
-            Quote = "I switched our household prescriptions to MediConsult two years ago and never looked back. Same-day refills delivered straight to our front porch.",
-            Service = "Doorstep Prescriptions",
-            Category = "Prescriptions",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "4 days ago"
-        },
-        new ReviewItem
-        {
-            Author = "Dr. Clara Morales",
-            Role = "Physician & Family Caregiver",
-            Initials = "CM",
-            AvatarUrl = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
-            Title = "Exceptional clinical rigor",
-            Quote = "The board-certified home visit doctor arrived on time with comprehensive diagnostic gear. Thorough vitals check and zero waiting room exposure for my father.",
-            Service = "Home Doctor Visit",
-            Category = "Home Visits",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "1 week ago"
-        },
-        new ReviewItem
-        {
-            Author = "Olivia Campbell",
-            Role = "Client Success Lead, HealthTech",
-            Initials = "OC",
-            AvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-            Title = "Customer care is unparalleled",
-            Quote = "The consultation was simple, intuitive, and immediate. The attending physician listened carefully and resolved my prescription in under ten minutes.",
-            Service = "Urgent Telehealth",
-            Category = "Video Telehealth",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "2 weeks ago"
-        },
-        new ReviewItem
-        {
-            Author = "Marina Silva",
-            Role = "People Operations Partner",
-            Initials = "MS",
-            AvatarUrl = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
-            Title = "Fast diagnostic turnaround",
-            Quote = "The phlebotomist arrived punctually at 7:30 AM before my workday started. Lab results posted to my patient dashboard before dinner the same day.",
-            Service = "At-Home Lab Diagnostics",
-            Category = "Diagnostics",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "3 weeks ago"
-        },
-        new ReviewItem
-        {
-            Author = "David Chen",
-            Role = "Senior Data Analyst",
-            Initials = "DC",
-            AvatarUrl = "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80",
-            Title = "Continuous vitals monitoring",
-            Quote = "Connected my blood pressure monitor directly into the portal. Dr. Reynolds reviewed my monthly trends and adjusted my dosage with zero friction.",
-            Service = "Cardiology Telehealth",
-            Category = "Video Telehealth",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "1 month ago"
-        },
-        new ReviewItem
-        {
-            Author = "Angela Brooks",
-            Role = "Educator & Parent",
-            Initials = "AB",
-            AvatarUrl = "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-            Title = "Saved our family an ER trip",
-            Quote = "Having a board-certified pediatrician available at 10 PM on a Sunday saved us a stressful emergency room trip. Calm, empathetic, and exceptionally professional.",
-            Service = "Pediatric Telehealth",
-            Category = "Video Telehealth",
-            Badge = "Verified Patient",
-            Rating = 5.0,
-            TimeAgo = "1 month ago"
+            await LoadStandaloneAsync();
         }
-    };
+    }
 
-    private List<ReviewItem> AllReviews => CustomReviews ?? defaultReviews;
-
-    private List<ReviewItem> FilteredReviews
+    protected override void OnParametersSet()
     {
-        get
+        if (DisplayReviews.Count == 0)
         {
-            if (selectedCategory == "All Reviews")
+            activeIndex = 0;
+        }
+        else if (activeIndex >= DisplayReviews.Count)
+        {
+            activeIndex = DisplayReviews.Count - 1;
+        }
+    }
+
+    public void FocusFirstCard()
+    {
+        activeIndex = 0;
+    }
+
+    private async Task LoadStandaloneAsync()
+    {
+        isLoading = true;
+        loadError = null;
+        try
+        {
+            var query = Db.From<ReviewModel>()
+                .Where(r => r.DeletedAt == null);
+
+            if (localCategory != "All Reviews")
             {
-                return AllReviews;
+                query = query.Where(r => r.ServiceCategory == localCategory);
             }
-            var list = AllReviews.Where(r => r.Category == selectedCategory).ToList();
-            return list.Count > 0 ? list : AllReviews;
+
+            var res = await query
+                .Order(r => r.CreatedAt, Ordering.Descending)
+                .Range(0, 49)
+                .Get();
+
+            standaloneReviews = res.Models;
+            activeIndex = standaloneReviews.Count > 1 ? 1 : 0;
+        }
+        catch (Exception ex)
+        {
+            loadError = $"Unable to load reviews from Supabase: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private void ToggleDropdown()
-    {
-        isDropdownOpen = !isDropdownOpen;
-    }
+    private void ToggleDropdown() => isDropdownOpen = !isDropdownOpen;
+    private void CloseDropdown() => isDropdownOpen = false;
 
-    private void CloseDropdown()
+    private async Task SelectCategoryAndCloseAsync(string category)
     {
         isDropdownOpen = false;
-    }
-
-    private void SelectCategoryAndClose(string category)
-    {
-        selectedCategory = category;
         activeIndex = 0;
-        isDropdownOpen = false;
-    }
 
-    private void SelectCategory(string category)
-    {
-        selectedCategory = category;
-        activeIndex = 0;
+        if (OnCategoryChanged.HasDelegate)
+        {
+            await OnCategoryChanged.InvokeAsync(category);
+        }
+        else
+        {
+            localCategory = category;
+            await LoadStandaloneAsync();
+        }
     }
 
     private void NextCard()
     {
-        if (FilteredReviews.Count == 0) return;
-        activeIndex = (activeIndex + 1) % FilteredReviews.Count;
+        if (DisplayReviews.Count == 0) return;
+        activeIndex = (SafeActiveIndex + 1) % DisplayReviews.Count;
     }
 
     private void PrevCard()
     {
-        if (FilteredReviews.Count == 0) return;
-        activeIndex = (activeIndex - 1 + FilteredReviews.Count) % FilteredReviews.Count;
+        if (DisplayReviews.Count == 0) return;
+        activeIndex = (SafeActiveIndex - 1 + DisplayReviews.Count) % DisplayReviews.Count;
     }
 
-    private void SelectCard(int index)
-    {
-        activeIndex = index;
-    }
+    private void SelectCard(int index) => activeIndex = index;
 
     public void OpenModal()
     {
@@ -632,7 +618,6 @@
     {
         isModalOpen = false;
         activeIndex = 0;
-        selectedCategory = "All Reviews";
         StateHasChanged();
     }
 
@@ -667,121 +652,101 @@
         }
     }
 
-    private async Task HandleModalSubmit()
+    private async Task HandleModalSubmitAsync()
     {
-        if (string.IsNullOrWhiteSpace(reviewerName) || 
-            string.IsNullOrWhiteSpace(reviewTitle) || 
+        if (modalSaving) return;
+
+        if (string.IsNullOrWhiteSpace(reviewerName) ||
+            string.IsNullOrWhiteSpace(reviewTitle) ||
             string.IsNullOrWhiteSpace(reviewComment))
         {
             errorMessage = "Please complete all fields before submitting.";
             return;
         }
 
-        string initials = "PT";
-        var parts = reviewerName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2)
-        {
-            initials = $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}";
-        }
-        else if (parts.Length == 1 && parts[0].Length >= 2)
-        {
-            initials = parts[0].Substring(0, 2).ToUpper();
-        }
-
-        string serviceLabel = selectedService switch
-        {
-            "Home Visits" => "Home Doctor Visit",
-            "Prescriptions" => "Doorstep Prescriptions",
-            "Diagnostics" => "At-Home Lab Diagnostics",
-            _ => "Urgent Telehealth"
-        };
-
-        var newReview = new ReviewItem
-        {
-            Author = reviewerName.Trim(),
-            Role = $"{serviceLabel} Patient",
-            Initials = initials,
-            AvatarUrl = "",
-            Title = reviewTitle.Trim(),
-            Quote = reviewComment.Trim(),
-            Service = serviceLabel,
-            Category = selectedService,
-            Badge = "Verified Patient",
-            Rating = selectedRating,
-            TimeAgo = "Just now"
-        };
-
-        if (CustomReviews != null)
-        {
-            CustomReviews.Insert(0, newReview);
-        }
-        else
-        {
-            defaultReviews.Insert(0, newReview);
-        }
-
-        if (OnReviewAdded.HasDelegate)
-        {
-            await OnReviewAdded.InvokeAsync(newReview);
-        }
-
-        selectedCategory = "All Reviews";
-        activeIndex = 0;
-        submissionSuccess = true;
+        modalSaving = true;
         errorMessage = "";
+
+        try
+        {
+            string initials = BuildInitials(reviewerName);
+            string serviceLabel = MapServiceLabel(selectedService);
+
+            var newReview = new ReviewModel
+            {
+                AuthorName = reviewerName.Trim(),
+                AuthorRole = $"{serviceLabel} Patient",
+                Initials = initials,
+                AvatarUrl = null,
+                Title = reviewTitle.Trim(),
+                Quote = reviewComment.Trim(),
+                ServiceLabel = serviceLabel,
+                ServiceCategory = selectedService,
+                Badge = "Verified Patient",
+                Rating = selectedRating,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await Db.From<ReviewModel>().Insert(newReview);
+
+            if (CustomReviews is null)
+            {
+                localCategory = "All Reviews";
+                await LoadStandaloneAsync();
+                activeIndex = 0;
+            }
+            else if (OnReviewAdded.HasDelegate)
+            {
+                await OnReviewAdded.InvokeAsync(newReview);
+            }
+
+            submissionSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not save review: {ex.Message}";
+        }
+        finally
+        {
+            modalSaving = false;
+        }
     }
+
+    private static string BuildInitials(string name)
+    {
+        var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}";
+        if (parts.Length == 1 && parts[0].Length >= 2)
+            return parts[0].Substring(0, 2).ToUpper();
+        return "PT";
+    }
+
+    private static string MapServiceLabel(string category) => category switch
+    {
+        "Home Visits" => "Home Doctor Visit",
+        "Prescriptions" => "Doorstep Prescriptions",
+        "Diagnostics" => "At-Home Lab Diagnostics",
+        _ => "Urgent Telehealth"
+    };
 
     private string GetCard3DStyle(int offset)
     {
-        // Active Center Card
         if (offset == 0)
-        {
             return "transform: translateX(0px) translateZ(80px) rotateY(0deg) scale(1.04); z-index: 30; opacity: 1; cursor: default;";
-        }
-        
-        // Immediate Right (+1)
         if (offset == 1)
-        {
             return "transform: translateX(250px) translateZ(-30px) rotateY(-20deg) scale(0.90); z-index: 20; opacity: 0.72; cursor: pointer;";
-        }
-        
-        // Immediate Left (-1)
         if (offset == -1)
-        {
             return "transform: translateX(-250px) translateZ(-30px) rotateY(20deg) scale(0.90); z-index: 20; opacity: 0.72; cursor: pointer;";
-        }
-        
-        // Outer Right (+2)
         if (offset == 2)
-        {
             return "transform: translateX(470px) translateZ(-80px) rotateY(-28deg) scale(0.78); z-index: 10; opacity: 0.40; cursor: pointer;";
-        }
-        
-        // Outer Left (-2)
         if (offset == -2)
-        {
             return "transform: translateX(-470px) translateZ(-80px) rotateY(28deg) scale(0.78); z-index: 10; opacity: 0.40; cursor: pointer;";
-        }
 
-        // Hidden beyond (+3, -3, etc.)
         int direction = offset > 0 ? 1 : -1;
         int distance = direction * 660;
         int angle = direction * -35;
         return $"transform: translateX({distance}px) translateZ(-120px) rotateY({angle}deg) scale(0.65); z-index: 0; opacity: 0; pointer-events: none;";
-    }
-
-    public class ReviewItem
-    {
-        public string Author { get; set; } = "";
-        public string Role { get; set; } = "";
-        public string Initials { get; set; } = "";
-        public string AvatarUrl { get; set; } = "";
-        public string Title { get; set; } = "";
-        public string Quote { get; set; } = "";
-        public string Service { get; set; } = "";
-        public string Category { get; set; } = "";
-        public string Badge { get; set; } = "Verified Patient";
-        public double Rating { get; set; } = 5.0;
-        public string TimeAgo { get; set; } = "";
     }
 }

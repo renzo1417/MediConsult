@@ -1,3 +1,6 @@
+@inject Supabase.Client Db
+@using static Supabase.Postgrest.Constants
+
 <section id="pricing" class="bg-[#F8F9FA] py-24 scroll-mt-24">
     <div class="max-w-7xl mx-auto px-6">
         <!-- Section Header -->
@@ -11,126 +14,125 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            <!-- Basic Tier -->
-            <!-- Basic Tier -->
-            <div class="interactive-card motion-card-spotlight bg-white rounded-3xl p-8 border border-neutral-200 flex flex-col justify-between group transition-all duration-400 ease-spring hover:-translate-y-2 hover:shadow-xl hover:border-neutral-300 reveal-on-scroll delay-100">
-                <div>
-                    <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Standard</span>
-                    <div class="mt-4 flex items-baseline space-x-1">
-                        <span class="text-4xl font-extrabold text-neutral-900">$0</span>
-                        <span class="text-sm text-neutral-500">/ mo</span>
-                    </div>
-                    <ul class="mt-8 space-y-3.5 text-sm text-neutral-600">
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>1 Free triage chat</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Digital prescription access</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Pay-as-you-go doctor visits</span>
-                        </li>
-                    </ul>
-                </div>
-                <a href="/signup" class="motion-btn motion-btn-outline mt-8 w-full py-3.5 rounded-full border border-neutral-300 font-semibold text-sm hover:border-black transition text-center">
-                    Get Started
-                </a>
-            </div>
+            @for (int i = 0; i < plans.Count; i++)
+            {
+                var plan = plans[i];
+                var delayClass = i switch { 0 => "delay-100", 1 => "delay-200", _ => "delay-300" };
+                var features = GetPlanFeatures(plan);
+                var ctaText = plan.IsPopular ? "Upgrade to Pro" : (plan.MonthlyFee == 0 ? "Get Started" : "Choose Plan");
 
-            <!-- Featured Dark Tier -->
-            <div class="interactive-card motion-card-spotlight bg-brand-dark rounded-3xl p-8 text-white flex flex-col justify-between shadow-2xl relative group transition-all duration-400 ease-spring hover:-translate-y-2.5 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] border border-transparent hover:border-neutral-700 reveal-on-scroll delay-200">
-                <span class="absolute top-6 right-6 bg-brand-lime text-neutral-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_12px_rgba(180,244,53,0.4)] flex items-center space-x-1">
-                    <svg class="w-3 h-3 text-neutral-950 fill-neutral-950" viewBox="0 0 24 24">
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                    </svg>
-                    <span>Most Popular</span>
-                </span>
-                <div>
-                    <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Pro Health</span>
-                    <div class="mt-4 flex items-baseline space-x-1">
-                        <span class="text-4xl font-extrabold text-white">$29</span>
-                        <span class="text-sm text-neutral-400">/ mo</span>
+                @if (plan.IsPopular)
+                {
+                    <!-- Featured Dark Tier -->
+                    <div class="interactive-card motion-card-spotlight bg-brand-dark rounded-3xl p-8 text-white flex flex-col justify-between shadow-2xl relative group transition-all duration-400 ease-spring hover:-translate-y-2.5 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] border border-transparent hover:border-neutral-700 reveal-on-scroll @delayClass">
+                        <span class="absolute top-6 right-6 bg-brand-lime text-neutral-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_12px_rgba(180,244,53,0.4)] flex items-center space-x-1">
+                            <svg class="w-3 h-3 text-neutral-950 fill-neutral-950" viewBox="0 0 24 24">
+                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                            </svg>
+                            <span>Most Popular</span>
+                        </span>
+                        <div>
+                            <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">@plan.Name</span>
+                            <div class="mt-4 flex items-baseline space-x-1">
+                                <span class="text-4xl font-extrabold text-white">$@plan.MonthlyFee.ToString("0")</span>
+                                <span class="text-sm text-neutral-400">/ mo</span>
+                            </div>
+                            <p class="mt-3 text-xs text-neutral-400 leading-relaxed">@plan.Description</p>
+                            <ul class="mt-6 space-y-3.5 text-sm text-neutral-300">
+                                @foreach (var feature in features)
+                                {
+                                    <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
+                                        <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-brand-lime flex-shrink-0">
+                                            <svg class="w-3 h-3 text-brand-lime stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        </span>
+                                        <span>@feature</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <a href="/signup" class="motion-btn motion-btn-lime mt-8 w-full py-3.5 rounded-full bg-brand-lime text-neutral-950 font-bold text-sm hover:bg-lime-300 transition shadow-lg text-center">
+                            @ctaText
+                        </a>
                     </div>
-                    <ul class="mt-8 space-y-3.5 text-sm text-neutral-300">
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-brand-lime flex-shrink-0">
-                                <svg class="w-3 h-3 text-brand-lime stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Unlimited telehealth consults</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-brand-lime flex-shrink-0">
-                                <svg class="w-3 h-3 text-brand-lime stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Free doorstep prescription delivery</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-brand-lime flex-shrink-0">
-                                <svg class="w-3 h-3 text-brand-lime stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>24/7 dedicated doctor chat</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-brand-lime flex-shrink-0">
-                                <svg class="w-3 h-3 text-brand-lime stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Annual lab test included</span>
-                        </li>
-                    </ul>
-                </div>
-                <a href="/signup" class="motion-btn motion-btn-lime mt-8 w-full py-3.5 rounded-full bg-brand-lime text-neutral-950 font-bold text-sm hover:bg-lime-300 transition shadow-lg text-center">
-                    Upgrade to Pro
-                </a>
-            </div>
-
-            <!-- Premium Tier -->
-            <div class="interactive-card motion-card-spotlight bg-white rounded-3xl p-8 border border-neutral-200 flex flex-col justify-between group transition-all duration-400 ease-spring hover:-translate-y-2 hover:shadow-xl hover:border-neutral-300 reveal-on-scroll delay-300">
-                <div>
-                    <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Family Care</span>
-                    <div class="mt-4 flex items-baseline space-x-1">
-                        <span class="text-4xl font-extrabold text-neutral-900">$59</span>
-                        <span class="text-sm text-neutral-500">/ mo</span>
+                }
+                else
+                {
+                    <!-- Standard / Premium Light Tier -->
+                    <div class="interactive-card motion-card-spotlight bg-white rounded-3xl p-8 border border-neutral-200 flex flex-col justify-between group transition-all duration-400 ease-spring hover:-translate-y-2 hover:shadow-xl hover:border-neutral-300 reveal-on-scroll @delayClass">
+                        <div>
+                            <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">@plan.Name</span>
+                            <div class="mt-4 flex items-baseline space-x-1">
+                                <span class="text-4xl font-extrabold text-neutral-900">$@plan.MonthlyFee.ToString("0")</span>
+                                <span class="text-sm text-neutral-500">/ mo</span>
+                            </div>
+                            <p class="mt-3 text-xs text-neutral-500 leading-relaxed">@plan.Description</p>
+                            <ul class="mt-6 space-y-3.5 text-sm text-neutral-600">
+                                @foreach (var feature in features)
+                                {
+                                    <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
+                                        <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
+                                            <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        </span>
+                                        <span>@feature</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <a href="/signup" class="motion-btn motion-btn-outline mt-8 w-full py-3.5 rounded-full border border-neutral-300 font-semibold text-sm hover:border-black transition text-center">
+                            @ctaText
+                        </a>
                     </div>
-                    <ul class="mt-8 space-y-3.5 text-sm text-neutral-600">
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Up to 4 family members</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Comprehensive quarterly checkups</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Priority home specialist visits</span>
-                        </li>
-                        <li class="flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1">
-                            <span class="w-5 h-5 rounded-full bg-brand-lime/20 flex items-center justify-center text-neutral-900 flex-shrink-0">
-                                <svg class="w-3 h-3 text-neutral-900 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            </span>
-                            <span>Pediatric emergency helpline</span>
-                        </li>
-                    </ul>
-                </div>
-                <a href="/signup" class="motion-btn motion-btn-outline mt-8 w-full py-3.5 rounded-full border border-neutral-300 font-semibold text-sm hover:border-black transition text-center">
-                    Choose Plan
-                </a>
-            </div>
+                }
+            }
         </div>
     </div>
 </section>
+
+@code {
+    private List<SubscriptionPlanModel> plans = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var res = await Db.From<SubscriptionPlanModel>()
+                .Where(p => p.IsActive == true)
+                .Order(p => p.MonthlyFee, Ordering.Ascending)
+                .Range(0, 9)
+                .Get();
+
+            plans = res.Models;
+        }
+        catch
+        {
+            plans = new();
+        }
+    }
+
+    private static List<string> GetPlanFeatures(SubscriptionPlanModel plan)
+    {
+        var list = new List<string>();
+
+        if (plan.MaxFamilyMembers > 1)
+            list.Add($"Up to {plan.MaxFamilyMembers} family members");
+        else if (plan.MonthlyFee == 0)
+            list.Add("1 Free triage chat");
+        else
+            list.Add("Unlimited telehealth consults");
+
+        if (plan.IncludesPrescriptionDelivery)
+            list.Add("Free doorstep prescription delivery");
+        else
+            list.Add("Digital prescription access");
+
+        if (plan.HasDedicatedDoctorChat)
+            list.Add("24/7 dedicated doctor chat");
+        else
+            list.Add("Pay-as-you-go doctor visits");
+
+        if (plan.IncludesAnnualLabTest)
+            list.Add("Annual lab test included");
+
+        return list;
+    }
+}

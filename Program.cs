@@ -6,6 +6,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Register Supabase Data API client
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("Supabase:Url is missing from appsettings.json.");
+var supabaseKey = builder.Configuration["Supabase:Key"]
+    ?? throw new InvalidOperationException("Supabase:Key is missing from appsettings.json.");
+
+var supabase = new Supabase.Client(
+    supabaseUrl,
+    supabaseKey,
+    new Supabase.SupabaseOptions { AutoConnectRealtime = false });
+
+await supabase.InitializeAsync();
+builder.Services.AddSingleton(supabase);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
